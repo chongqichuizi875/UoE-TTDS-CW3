@@ -1,9 +1,9 @@
 from typing import List
-# from db.DBInterface import DBInterface
+from db.DBInterface import DBInterface
 
 from pymongo import MongoClient
 
-class MongoDB():
+class MongoDB(DBInterface):
     def __init__(self) -> None:
         client = MongoClient("mongodb://192.168.224.1:27017/")
         self.wiki = client.metawiki
