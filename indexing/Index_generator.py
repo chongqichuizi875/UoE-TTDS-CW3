@@ -28,11 +28,10 @@ class IndexGenerator:
         self.wiki_path = wiki_path
     
     def run_indexing(self, wiki):
-        for i, (tokens, (pageid, title, text)) in enumerate(wiki.get_texts()):
+        for i, (tokens, page) in enumerate(wiki.get_texts()):
             logging.info("loading: " + str(i+1))
 
-            for cursor in cursors:
-                self.__load_tempfile(cursor.get('_id'), cursor.get('sentence'), cursor.get('movie_id'))
+                self.__load_tempfile(tokens, page)
 
             if (i+1)%15 == 0:
                 self.__regularize_dict()
@@ -41,7 +40,9 @@ class IndexGenerator:
         self.__regularize_dict()
         self.__save_pickle("last")
 
-    def __load_tempfile(self, doc_id, sentence, movie_id):
+    def __load_tempfile(self, tokens, page):
+        pageid, title, text = page
+        
         preprocessed = preprocessing.preprocess(sentence, stemming=self.activate_stemming, stop=self.activate_stop)
         preprocessed = list(filter(None, preprocessed))
 
