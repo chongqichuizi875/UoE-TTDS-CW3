@@ -9,7 +9,7 @@ class DBInterface(ABC):
         raise NotImplementedError()
     
     @abstractmethod
-    def get_pages_by_page_id(self, ids:List[str]):
+    def get_pages_by_list_of_ids(self, ids:List[str]):
         raise NotImplementedError()
     
     @abstractmethod
