@@ -87,7 +87,7 @@ def input_value():
     前端-->后端
     (1) input_value: 在输入框中输入的query
     后端-->前端
-    infos_list=[{'title': title1, 'introduce':introduce1, 'url': url1},
+    (1) infos_list=[{'title': title1, 'introduce':introduce1, 'url': url1},
                     {'title': title2, 'introduce':introduce2, 'url': url2},
                     ...]: 包含前10条模糊搜索的列表形式，每一个搜索结果用字典储存
         字典里每一项按顺序分别为词条title，词条introduce和词条url
