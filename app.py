@@ -6,7 +6,8 @@ app = Flask(__name__)
 
 CORS().init_app(app)
 
-url_wiki_introduce = 'http://127.0.0.1:3000/wiki/'
+url_search_results = 'http://127.0.0.1:5000/search/'
+url_wiki_introduce = 'http://127.0.0.1:5000/wiki/'
 
 
 @app.route('/')
@@ -54,7 +55,7 @@ def search_results(name):
                     {'title': title2, 'introduce':introduce2, 'url': url2},
                     ...]: 包含所有搜索结果的列表形式，每一个搜索结果用字典储存
         字典里每一项按顺序分别为词条title，词条introduce和词条url
-        url格式为'http://127.0.0.1:3000/wiki/'+词条title，在前端点击链接后转到词条具体介绍界面
+        url格式为'http://127.0.0.1:5000/wiki/'+词条title，在前端点击链接后转到词条具体介绍界面
     (2) len_number: 搜索结果的数量
     """
     # GET操作，则显示搜索结果界面
@@ -91,7 +92,7 @@ def input_value():
                     {'title': title2, 'introduce':introduce2, 'url': url2},
                     ...]: 包含前10条模糊搜索的列表形式，每一个搜索结果用字典储存
         字典里每一项按顺序分别为词条title，词条introduce和词条url
-        url格式为'http://127.0.0.1:3000/wiki/'+词条title，在前端点击链接后转到词条具体介绍界面
+        url格式为'http://127.0.0.1:5000/search/'+词条title，在前端点击链接后转到搜索结果界面
     这部分考虑修改为，点击模糊搜索提示词，不是转到具体介绍界面，而是将模糊搜索词填充到输入框，然后点击搜索，跳转到搜索结果页面
     :return:
     """
@@ -105,11 +106,11 @@ def input_value():
         # e.g. 假如输入框输入ja，则直接从整个wikipedia的词条数据库中获得所有带ja的词条，并选取前10个显示在模糊提示框内
         for i in infos:
             if input_value.lower() in i.title.lower() or input_value.upper() in i.title.upper():
-                infos_list.append({'title': i.title, 'introduce': i.introduce, 'url': url_wiki_introduce + i.title})
+                infos_list.append({'title': i.title, 'introduce': i.introduce, 'url': url_search_results + i.title})
         infos_list = infos_list[0:10]
 
         return jsonify(infos_list)
 
 
 if __name__ == '__main__':
-    app.run(port=2000, debug=app.config["DEBUG"], threaded=False)
+    app.run(port=5000, debug=app.config["DEBUG"], threaded=False)
