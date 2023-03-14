@@ -1,6 +1,9 @@
 #%%
 from db.MongoDB import MongoDB
 db = MongoDB()
+#%%
+from db.MongoDB import tokenize
+tokenize("I love you")
 #%% 
 page_cursor = db.get_indexed_pages_by_token('sunday', skip=0, limit=1)
 for page in page_cursor:
