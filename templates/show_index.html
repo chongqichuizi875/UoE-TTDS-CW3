@@ -25,7 +25,7 @@
         </div>
 
 
-        <div style="padding: 50px 0 0 100px;font-size: 0">
+        <div style="display: inline-block;vertical-align: top;padding: 50px 0 0 100px;font-size: 0">
 
 
             <input v-model="input_value" placeholder="Enter Your Query" type="text"
@@ -38,7 +38,8 @@
             <div v-if="infos">
                 <div style="font-size: 15px;background-color: #f1f3f4;width: 404px">
                     <div v-for="i in infos" style="margin: 0 2px 10px 10px;width: 400px;height: 20px;">
-                        <a style="width: 400px ;text-decoration: none;color: black " href="[[ i['url' ] ]]">
+                        <a v-on:click="click_change([[ i['title'] ]])"
+                           style="width: 400px ;text-decoration: none;color: black ">
                             [[ i['title'] ]] </a>
 
                     </div>
@@ -61,7 +62,7 @@
         <div v-for="i in infos_list">
 
             <div>
-                <a style=" text-decoration: none;color: #7b69a1;font-size: 20px" :href="[[ i['url'] ]]">
+                <a v-on:click="tiaozhuan([[ i['title'] ]])" href="javascript:void(0);" style="  text-decoration: none;color: #7b69a1;font-size: 20px" >
                     [[ i['title'] ]]
                 </a>
                 <div style="font-size:5px;width: 700px">[[ i['introduce'] ]]</div>
@@ -102,12 +103,25 @@
                 // infos
                 infos_list: '',
                 len_number: '',
+                local_url:'',
+
 
 
             }
         },
 
         mounted() {
+
+            var cur = window.document.location.href;
+            var pathname = window.document.location.pathname;
+            var pos = cur.indexOf(pathname);
+            var localhostPath = cur.substring(0, pos);
+            this.local_url = localhostPath
+
+            console.log(this.local_url)
+
+
+
             var url = window.location.pathname
             var wiki = url.slice(8)
             var id = '1'
@@ -115,7 +129,7 @@
 
             axios.post('/search/' + wiki, {'id': id})
                 .then(res => {
-                    console.log(res.data)
+
                     this.infos_list = res.data['infos_list']
                     this.len_number = res.data['len_number']
                 })
@@ -128,6 +142,16 @@
 
 
         methods: {
+            tiaozhuan(text){
+                location.href=this.local_url +'/wiki/' + text
+
+            },
+            click_change(text) {
+
+                this.input_value = text[0][0]
+            },
+
+
             handleCurrentChange(id) {
                 var url = window.location.pathname
                 var wiki = url.slice(8)
