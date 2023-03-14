@@ -2,6 +2,11 @@ from typing import List
 from db.DBInterface import DBInterface
 
 from pymongo import MongoClient
+from gensim import utils
+
+# default thresholds for lengths of individual tokens
+TOKEN_MIN_LEN = 2
+TOKEN_MAX_LEN = 15
 
 class MongoDB(DBInterface):
     def __init__(self) -> None:
@@ -40,3 +45,31 @@ class MongoDB(DBInterface):
         doc_curser = self.inverted_index.find({"token": token}, {"_id": 0})
         doc_curser = doc_curser.skip(skip).limit(limit)
         return doc_curser
+
+def tokenize(content, token_min_len=TOKEN_MIN_LEN, token_max_len=TOKEN_MAX_LEN, lower=True):
+    """Tokenize a piece of text from Wikipedia.
+
+    Set `token_min_len`, `token_max_len` as character length (not bytes!) thresholds for individual tokens.
+
+    Parameters
+    ----------
+    content : str
+        String without markup (see :func:`~gensim.corpora.wikicorpus.filter_wiki`).
+    token_min_len : int
+        Minimal token length.
+    token_max_len : int
+        Maximal token length.
+    lower : bool
+        Convert `content` to lower case?
+
+    Returns
+    -------
+    list of str
+        List of tokens from `content`.
+
+    """
+    return [
+        utils.to_unicode(token) 
+            for token in utils.tokenize(content, lower=lower, errors='ignore')
+            if token_min_len <= len(token) <= token_max_len and not token.startswith('_')
+    ]
