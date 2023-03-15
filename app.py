@@ -72,7 +72,7 @@ def search_results(name):
         for i in infos:
             # 不管是大写小写都能搜索出结果
             if title.lower() in str(i.title).lower() or title.upper() in str(i.title).upper():
-                infos_list.append({'title': i.title, 'introduce': i.introduce[0:200] + '...'})
+                infos_list.append({'title': i.title, 'introduce': i.introduce[0:600] + '...'})
         len_number = int(len(infos_list))
         # 第1页就是放搜索结果[0:10], 第2页[11:20]，以此类推
         infos_list = infos_list[(page_id * 10 - 10):(page_id * 10)]
