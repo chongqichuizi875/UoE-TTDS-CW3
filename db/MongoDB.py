@@ -10,8 +10,8 @@ TOKEN_MAX_LEN = 15
 
 class MongoDB(DBInterface):
     def __init__(self) -> None:
-        # client = MongoClient("mongodb://192.168.224.1:27017/")
-        client = MongoClient("mongodb://127.0.0.1:27017/")
+        client = MongoClient("mongodb://192.168.224.1:27017/")
+        # client = MongoClient("mongodb://127.0.0.1:27017/")
         self.wiki = client.metawiki
         self.pages = self.wiki.pages
         self.inverted_index = self.wiki.inverted_index
