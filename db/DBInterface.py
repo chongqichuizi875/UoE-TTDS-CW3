@@ -13,5 +13,5 @@ class DBInterface(ABC):
         raise NotImplementedError()
     
     @abstractmethod
-    def get_indexed_pages_by_token(self, token: str, skip:int, limit:int):
+    def get_indexed_pages_by_token(self, token: str, batch_size):
         raise NotImplementedError()
