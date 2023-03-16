@@ -11,11 +11,12 @@ MAX_INDEX_SPLITS = 30
 
 class MongoDB(DBInterface):
     def __init__(self) -> None:
-        client = MongoClient("mongodb://192.168.224.1:27017/")
-        # client = MongoClient("mongodb://127.0.0.1:27017/")
-        self.wiki = client.wiki
-        self.pages = self.wiki.pages
+        # client = MongoClient("mongodb://192.168.224.1:27017/")
+        client = MongoClient("mongodb://127.0.0.1:27017/")
+        self.wiki = client.metawiki
+        self.pages = self.wiki.page
         self.inverted_index = self.wiki.inverted_index
+        self.inverted_index.create_index('token')
 
     """  
         id: page_id
