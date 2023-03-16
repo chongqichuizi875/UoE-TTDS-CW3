@@ -59,6 +59,7 @@ class Wiki_Loader:
         tokens, (pageid, title, text) = params
         self.page_list.append({"_id": pageid, 
                 "title": title,
+                "page_len": ,
                 "text": text})
 
     def create_inverted_index(self, token, pageid, idx):
