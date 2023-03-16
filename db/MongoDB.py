@@ -16,6 +16,7 @@ class MongoDB(DBInterface):
         self.wiki = client.wiki
         self.pages = self.wiki.pages
         self.inverted_index = self.wiki.inverted_index
+        self.inverted_index.create_index("token")
 
     """  
         id: page_id
@@ -48,3 +49,8 @@ class MongoDB(DBInterface):
             doc_curser = doc_curser.skip(i).limit(batch_size)
             for doc in doc_curser:
                 yield doc
+    def get_page_count(self):
+        self.wiki.pages.count_documents({})
+
+    # def get_avg_page_len(self):
+        

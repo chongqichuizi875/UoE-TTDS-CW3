@@ -204,7 +204,3 @@ tokens =MyWikiCorpus("").wiki_tokenize("sunday")
 gen = MongoDB().get_indexed_pages_by_token(tokens[0])
 for x in gen:
     print(x)
-# %%
-for x in gen:
-    
-    break
