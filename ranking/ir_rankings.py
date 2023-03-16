@@ -1,22 +1,24 @@
 import sys
 from pathlib import Path
 import math
-import PreProcessing
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from db import MongoDB
+from data_collection.preprocessing import Preprocessing
 
 
 mongoDB = MongoDB.MongoDB()
+preprocessing = Preprocessing()
 avg_page_len = 868
+N = 127332
 
 
 def get_freq_from_index(term):
     freq_dict = {}
-    page_cursor = mongoDB.get_indexed_pages_by_token(token=term, skip=0, limit=1)
+    page_cursor = mongoDB.get_indexed_pages_by_token(token=term)
     for page in page_cursor:
-        occurred_page_list = page['page']
+        occurred_page_list = page['pages']
         for occurrence in occurred_page_list:
             # only store the page ids where the term occurrences are greater than 3
             if len(list(occurrence['pos'])) > 3:
@@ -25,13 +27,13 @@ def get_freq_from_index(term):
 
 
 def calculate_tfidf_weight_of_term_in_page(term, pageId):
-    page_cursor = mongoDB.get_indexed_pages_by_token(token="sunday", skip=0, limit=1)
-    page_dict = mongoDB.get_page_by_page_id(pageId)
-    page_len = len(PreProcessing.preprocessing(page_dict['text']))
+    page_cursor = mongoDB.get_indexed_pages_by_token(token="sunday")
+    # page_dict = mongoDB.get_page_by_page_id(pageId)
+    # page_len = len(PreProcessing.preprocessing(page_dict['text']))
     df = 0
     for page in page_cursor:
         df += page['page_count']
-    N = mongoDB.pages_count
+    # N = mongoDB.pages_count
     idf = math.log((N/df), 10)
     freq_dict = get_freq_from_index(term)
     if dict(freq_dict).__contains__(pageId):
@@ -51,7 +53,7 @@ def calculate_sorted_tfidf_score_of_query(query_text):
     :return: the calculated score list for each doc page.
     """
     score_map = {}
-    terms = PreProcessing.preprocessing(text=query_text)
+    terms = preprocessing.wiki_tokenize(query_text)
     print("terms::" + ','.join(terms))
     occurred_page_id_list = []
     for term in terms:
@@ -93,7 +95,6 @@ def get_tfidf_results(query_text):
         infos_list.append({'title': page['title'], 'introduce': page['text']})
     return infos_list
 
-
 # IDF: log((total number of docs / DF), 10)
 # R(t, d) = tf*(k1 + 1) / (tf+K)
 # K = k1 * (1 - b + b*(page_len/avg_page_len))
@@ -103,17 +104,18 @@ def get_tfidf_results(query_text):
 k1 = 2
 b = 0.75
 def calculate_bm25_weight_of_term_in_page(term, page_id):
-    page_cursor = mongoDB.get_indexed_pages_by_token(token=term, skip=0, limit=1)
+    page_cursor = mongoDB.get_indexed_pages_by_token(token=term)
     page_dict = mongoDB.get_page_by_page_id(page_id)
     df = 0
     for page in page_cursor:
         df += page['page_count']
-    N = mongoDB.pages_count
+    # N = mongoDB.pages_count
     idf = math.log((N/df), 10)
     freq_dict = get_freq_from_index(term)
-    if dict(freq_dict).__contains__(page_id):
+    if dict(freq_dict).__contains__(page_id) and page_dict:
         tf = freq_dict[page_id]
-        page_len = len(MongoDB.tokenize(page_dict['text']))
+        # page_len = len(MongoDB.tokenize(page_dict['text']))
+        page_len = len(preprocessing.wiki_tokenize(page_dict['text'], lower=False, stop=False, stemming=False, len_filter=False))
         K = k1 * (1 - b + (b * (page_len / avg_page_len)))
         relevance = (tf * (k1 + 1)) / (tf + K)
         weight = idf * relevance
@@ -128,7 +130,7 @@ def calculate_sorted_bm25_score_of_query(query_text):
         :return: the calculated score list for each doc page.
     """
     score_map = {}
-    terms = PreProcessing.preprocessing(text=query_text)
+    terms = preprocessing.wiki_tokenize(query_text)
     occurred_page_id_list = []
     for term in terms:
         freq_dict = dict(get_freq_from_index(term))
