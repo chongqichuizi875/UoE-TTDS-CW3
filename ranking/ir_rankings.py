@@ -18,7 +18,7 @@ def get_freq_from_index(term):
     freq_dict = {}
     page_cursor = mongoDB.get_indexed_pages_by_token(token=term)
     for page in page_cursor:
-        occurred_page_list = page['pages']
+        occurred_page_list = page['page']
         for occurrence in occurred_page_list:
             # only store the page ids where the term occurrences are greater than 3
             if len(list(occurrence['pos'])) > 3:
@@ -58,11 +58,11 @@ def calculate_sorted_tfidf_score_of_query(query_text):
     occurred_page_id_list = []
     for term in terms:
         freq_dict = dict(get_freq_from_index(term))
-        print(freq_dict)
+        # print(freq_dict)
         occurred_page_id_list.extend(freq_dict.keys())
 
     occurred_page_id_list = list(set(occurred_page_id_list))
-    print(len(occurred_page_id_list))
+    # print(len(occurred_page_id_list))
     for i in range(len(occurred_page_id_list)):
         score = 0
         for term in terms:
@@ -73,18 +73,18 @@ def calculate_sorted_tfidf_score_of_query(query_text):
     sorted_score_map = dict(sorted(score_map.items(), key=lambda i: i[1], reverse=True))
     return sorted_score_map
 
-tfidf_results = calculate_sorted_tfidf_score_of_query("sunday")
-# for page_id, score in zip(results.keys(), results.values()):
-print("tfidf_results:::")
-print(tfidf_results)
-
-the_first_tfidf_returned_page = mongoDB.get_pages_by_list_of_ids(ids=list(tfidf_results.keys()))[0]
-the_first_tfidf_returned_page_title = the_first_tfidf_returned_page['title']
-the_first_tfidf_returned_page_content = the_first_tfidf_returned_page['text']
-print("title::::tfidf")
-print(the_first_tfidf_returned_page_title)
-print("text::::tfidf")
-print(the_first_tfidf_returned_page_content)
+# tfidf_results = calculate_sorted_tfidf_score_of_query("sunday")
+# # for page_id, score in zip(results.keys(), results.values()):
+# print("tfidf_results:::")
+# print(tfidf_results)
+#
+# the_first_tfidf_returned_page = mongoDB.get_pages_by_list_of_ids(ids=list(tfidf_results.keys()))[0]
+# the_first_tfidf_returned_page_title = the_first_tfidf_returned_page['title']
+# the_first_tfidf_returned_page_content = the_first_tfidf_returned_page['text']
+# print("title::::tfidf")
+# print(the_first_tfidf_returned_page_title)
+# print("text::::tfidf")
+# print(the_first_tfidf_returned_page_content)
 
 
 def get_tfidf_results(query_text):
@@ -110,7 +110,7 @@ def calculate_bm25_weight_of_term_in_page(term, page_id):
     for page in page_cursor:
         df += page['page_count']
     # N = mongoDB.pages_count
-    idf = math.log((N/df), 10)
+    idf = math.log(((N+0.5)/(df+0.5)), 10)
     freq_dict = get_freq_from_index(term)
     if dict(freq_dict).__contains__(page_id) and page_dict:
         tf = freq_dict[page_id]
@@ -134,11 +134,11 @@ def calculate_sorted_bm25_score_of_query(query_text):
     occurred_page_id_list = []
     for term in terms:
         freq_dict = dict(get_freq_from_index(term))
-        print(freq_dict)
+        # print(freq_dict)
         occurred_page_id_list.extend(freq_dict.keys())
 
     occurred_page_id_list = list(set(occurred_page_id_list))
-    print(len(occurred_page_id_list))
+    # print(len(occurred_page_id_list))
     for i in range(len(occurred_page_id_list)):
         score = 0
         for term in terms:
@@ -148,18 +148,18 @@ def calculate_sorted_bm25_score_of_query(query_text):
     sorted_score_map = dict(sorted(score_map.items(), key=lambda i: i[1], reverse=True))
     return sorted_score_map
 
-ts = time.time()
-print(ts)
-bm25_results = calculate_sorted_bm25_score_of_query("sunday")
-ts2 = time.time()
-print(ts2)
-print("bm25_results:::")
-print(bm25_results)
-the_first_bm25_returned_page = mongoDB.get_pages_by_list_of_ids(ids=list(bm25_results.keys()))[0]
-the_first_bm25_returned_page_title = the_first_bm25_returned_page['title']
-the_first_bm25_returned_page_content = the_first_bm25_returned_page['text']
-print("title::::bm25")
-print(the_first_bm25_returned_page_title)
+# ts = time.time()
+# print(ts)
+# bm25_results = calculate_sorted_bm25_score_of_query("sunday")
+# ts2 = time.time()
+# print(ts2)
+# print("bm25_results:::")
+# print(bm25_results)
+# the_first_bm25_returned_page = mongoDB.get_pages_by_list_of_ids(ids=list(bm25_results.keys()))[0]
+# the_first_bm25_returned_page_title = the_first_bm25_returned_page['title']
+# the_first_bm25_returned_page_content = the_first_bm25_returned_page['text']
+# print("title::::bm25")
+# print(the_first_bm25_returned_page_title)
 
 # print("text::::bm25")
 # print(the_first_bm25_returned_page_content)

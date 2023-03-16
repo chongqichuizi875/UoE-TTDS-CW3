@@ -1,12 +1,15 @@
 from flask import Flask, render_template, request, jsonify
 from sqlalchemy_config.sqlalchemy_config import db_session, Infos
 from flask_cors import CORS
+from ranking import ir_rankings
 
 app = Flask(__name__)
 
 CORS().init_app(app)
 
 web_url = 'https://en.wikipedia.org/'
+
+infos_list_wiki = []
 
 
 @app.route('/')
@@ -64,17 +67,24 @@ def search_results(name):
     if request.method == 'POST':
         title = str(name)
         page_id = int(request.get_json()['id'])
-        # 数据库操作
-        infos = db_session.query(Infos).filter().all()
-        db_session.commit()
-        db_session.close()
-        infos_list = []
-        for i in infos:
-            # 不管是大写小写都能搜索出结果
-            if title.lower() in str(i.title).lower() or title.upper() in str(i.title).upper():
-                infos_list.append({'title': i.title, 'introduce': i.introduce[0:600] + '...'})
-        len_number = int(len(infos_list))
+        infos_list_wiki.clear()
+        # # 数据库操作
+        # infos = db_session.query(Infos).filter().all()
+        # db_session.commit()
+        # db_session.close()
+        # infos_list = []
+        # for i in infos:
+        #     # 不管是大写小写都能搜索出结果
+        #     if title.lower() in str(i.title).lower() or title.upper() in str(i.title).upper():
+        #         infos_list.append({'title': i.title, 'introduce': i.introduce[0:600] + '...'})
+        # len_number = int(len(infos_list))
         # 第1页就是放搜索结果[0:10], 第2页[11:20]，以此类推
+        infos_list_wiki.append(ir_rankings.get_tfidf_results(query_text=title))
+        len_number = int(len(infos_list_wiki))
+        infos_list = []
+        for wiki in infos_list_wiki:
+            wiki['introduce'] = wiki['introduce'][0:600]
+            infos_list.append({'title': wiki['title'], 'introduce': wiki['introduce'] + '...'})
         infos_list = infos_list[(page_id * 10 - 10):(page_id * 10)]
         return jsonify({'infos_list': infos_list, 'len_number': len_number})
 

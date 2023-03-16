@@ -35,10 +35,12 @@
 
         <div style="padding: 30px 0 0 0"></div>
 
-        <input v-model="input_value" placeholder="Enter Your Query" type="text"
-               style="height: 50px;width: 400px;outline: none;vertical-align: top;border:none">
+        <input v-model="input_value"
+               placeholder="Format--If Boolean Search: Term 1 AND Term2, Proximity Search: #15(Term1, Term2)"
+               type="text"
+               style="height: 50px;width: 510px;font-size:3px;outline: none;vertical-align: top;border:none">
         <button v-on:click="input" type="button"
-                style="background-color: #56b9f4;width: 180px;height: 52px;vertical-align: top;border-style:none;font-size: 18px;font-weight: 700">
+                style="background-color: #56b9f4;width: 70px;height: 52px;vertical-align: top;border-style:none;font-size: 18px;font-weight: 700">
             Search
         </button>
 
