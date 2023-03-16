@@ -137,9 +137,10 @@ from data_collection.wikicorpus import MyWikiCorpus
 wiki = MyWikiCorpus(wiki_path)
 # wiki.save_Dictionary("/mnt/e/wiki/results/enwiki1/enwiki")
 loader = Wiki_Loader(wiki_path)
-loader.process_inverted_index(50000)
+loader.batch_process_pages(10000)
+# loader.batch_process_inverted_index(50000)
 #%%
-loader.process_pages(100)
+loader.batch_process_pages(100)
 #%%
 wiki.save_Dictionary("/mnt/e/wiki/results/enwiki1/enwiki")
 #%%
@@ -197,3 +198,13 @@ from data_collection.wikicorpus import MyWikiCorpus
 wiki = MyWikiCorpus("")
 wiki.wiki_tokenize(r"Сopy of `s` with all the 'File:' and 'Image:' markup replaced by their `corresponding captions <http://www.mediawiki.org/wiki/Help:Images>`_.")
 # %%
+from db.MongoDB import MongoDB
+from data_collection.wikicorpus import MyWikiCorpus
+tokens =MyWikiCorpus("").wiki_tokenize("sunday")
+gen = MongoDB().get_indexed_pages_by_token(tokens[0])
+for x in gen:
+    print(x)
+# %%
+for x in gen:
+    
+    break

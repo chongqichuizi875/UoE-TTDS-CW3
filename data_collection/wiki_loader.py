@@ -22,7 +22,7 @@ class Wiki_Loader:
         load pages and create inverted index
         transfer to mongodb
     """ 
-    def _process_wiki(self, load_func, save_func, batch_size):
+    def _batch_process_wiki(self, load_func, save_func, batch_size):
         for i, params in enumerate(self.wiki.get_texts()):
             load_func(params)
             if i % batch_size == batch_size-1:
@@ -31,11 +31,19 @@ class Wiki_Loader:
 
         save_func()
 
-    def process_pages(self, batch_size=100000):
-        self._process_wiki(self.load_page, self.save_pages, batch_size)
+    def batch_process_pages(self, batch_size=100000):
+        self._batch_process_wiki(self.load_page, self.save_pages, batch_size)
 
-    def process_inverted_index(self, batch_size=100000):
-        self._process_wiki(self.load_inverted_index, self.save_inverted_index, batch_size)
+    def batch_process_inverted_index(self, batch_size=100000):
+        self._batch_process_wiki(self.load_inverted_index, self.save_inverted_index, batch_size)
+
+    def process__wiki(self, f):
+        params = self.wiki.process_wiki_page(f)
+        # paramas = tokens, (title, pageid, text)
+        self.load_page(params)
+        self.load_inverted_index(params)
+        self.save_inverted_index()
+        self.save_pages()
 
     def load_inverted_index(self, params):
         tokens, (pageid, title, text) = params
@@ -98,6 +106,19 @@ class Wiki_Loader:
                 
             inverted_index.insert_many(list(idx_dict.values()))
             self.inverted_index_dict.clear()
+    def save_single_inverted_index(self):
+        op_list = list()
+        for doc in self.inverted_index_dict.values():
+            op_list.append(UpdateOne(
+                        {'token': doc['token']},
+                        {
+                            '$push': { 'pages': doc['pages'] }, 
+                            '$inc': {'page_count': 1}
+                        },
+                        upsert= True
+            ))
+        inverted_index.bulk_write(op_list, ordered=False)
+    #                
     # def save_inverted_index(self):
     #     if self.inverted_index_dict:
     #         idx_dict = self.inverted_index_dict

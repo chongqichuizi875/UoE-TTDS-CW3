@@ -17,25 +17,13 @@ class MyWikiCorpus(WikiCorpus):
     def __init__(self, fname, dictionary={}, lower=True):
         super().__init__(fname, dictionary=dictionary, lower = lower)
         self.metadata = True
-        try:
-            _create_unverified_https_context = ssl._create_unverified_context
-        except AttributeError:
-            pass
-        else:
-            ssl._create_default_https_context = _create_unverified_https_context
-
-        nltk.download('stopwords')
-        nltk.download('punkt')
         self.stop_words = set(stopwords.words('english'))
     def get_texts(self):
         articles, articles_all = 0, 0
         positions, positions_all = 0, 0
 
-        tokenization_params = (self.tokenizer_func, self.token_min_len, self.token_max_len, self.lower)
         texts = (
-            (text, title, pageid, tokenization_params)
-            for title, text, pageid
-            in extract_pages(bz2.BZ2File(self.fname), self.filter_namespaces, self.filter_articles)
+            texts for texts in extract_pages(bz2.BZ2File(self.fname), self.filter_namespaces, self.filter_articles)
         )
         pool = multiprocessing.Pool(self.processes, init_to_ignore_interrupt)
 
@@ -43,19 +31,16 @@ class MyWikiCorpus(WikiCorpus):
             # process the corpus in smaller chunks of docs, because multiprocessing.Pool
             # is dumb and would load the entire input into RAM at once...
             for group in utils.chunkize(texts, chunksize=10 * self.processes, maxsize=1):
-                for tokens, title, pageid, text in pool.imap(self.process_article, group):
+                for (tokens, (pageid, title, text)) in pool.imap(self.process_article, group):
                     articles_all += 1
                     positions_all += len(tokens)
                     # article redirects and short stubs are pruned here
                     if len(tokens) < self.article_min_tokens or \
-                            any(title.startswith(ignore + ':') for ignore in IGNORED_NAMESPACES):
+                        any(title.startswith(ignore + ':') for ignore in IGNORED_NAMESPACES):
                         continue
                     articles += 1
                     positions += len(tokens)
-                    if self.metadata:
-                        yield (tokens, (pageid, title, text))
-                    else:
-                        yield tokens
+                    yield (tokens, (pageid, title, text))
 
         except KeyboardInterrupt:
             logger.warning(
@@ -78,18 +63,28 @@ class MyWikiCorpus(WikiCorpus):
         finally:
             pool.terminate()
 
-
     def get_tokens(self):
         for tokens, metadata in self.get_texts():
             yield tokens, metadata[0] # tokens, pageid
 
-    def process_article(self, args):
-        tokenizer_func, token_min_len, token_max_len, lower = args[-1]
-        args = args[:-1]
-        text, title, pageid = args
+    def process_article(self, texts):
+        title, text, pageid = texts
         text = filter_wiki(text)
-        result = self.wiki_tokenize(text, token_min_len, token_max_len, lower)
-        return result, title, pageid, text
+        tokens = self.wiki_tokenize(text, self.token_min_len, self.token_max_len, self.lower)
+
+        return  (tokens, (pageid, title, text))
+
+    """ process single page
+    """
+    def process_wiki_page(self, f):
+        texts = next(extract_pages(bz2.BZ2File(self.fname), self.filter_namespaces, self.filter_articles))
+        (tokens, (pageid, title, text)) = self.process_article(texts)
+        if len(tokens) < self.article_min_tokens or \
+            any(title.startswith(ignore + ':') for ignore in IGNORED_NAMESPACES):
+            return (tokens, (pageid, title, text))
+        else:
+            return None
+
 
     def wiki_tokenize(self, content, token_min_len=TOKEN_MIN_LEN, token_max_len=TOKEN_MAX_LEN, lower=True, stop=True, stemming=True):
         gen = (token for token in utils.tokenize(content, lower=lower, errors='ignore')
@@ -112,4 +107,3 @@ class MyWikiCorpus(WikiCorpus):
         Dictionary((params[0] for params in self.get_tokens())).save_as_text(f_path+"_wordids.txt.bz2")
     def load_Dictionary(self, f_path):
         return Dictionary.load_from_text(f_path+"_wordids.txt.bz2")
-from gensim.scripts import make_wiki

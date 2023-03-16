@@ -7,12 +7,13 @@ from gensim import utils
 # default thresholds for lengths of individual tokens
 TOKEN_MIN_LEN = 2
 TOKEN_MAX_LEN = 15
+MAX_INDEX_SPLITS = 30
 
 class MongoDB(DBInterface):
     def __init__(self) -> None:
         client = MongoClient("mongodb://192.168.224.1:27017/")
         # client = MongoClient("mongodb://127.0.0.1:27017/")
-        self.wiki = client.metawiki
+        self.wiki = client.wiki
         self.pages = self.wiki.pages
         self.inverted_index = self.wiki.inverted_index
 
@@ -41,35 +42,9 @@ class MongoDB(DBInterface):
                 print(page)
             output: {'token': 'sunday', 'page_count': 2057, 'page': [{'_id': 7, 'pos': [0]}, {'_id': 184, 'pos': [540]}, {'_id': 684, 'pos': [1289, 1568]}, {'_id': 1611, 'pos': [1638, 1643]}, {'_id': 1712, 'pos': [57, 69]}, {'_id': 5570, 'pos': [145, 1280]}, {'_id': 5571, 'pos': [1977]}, ...]}
     """
-    def get_indexed_pages_by_token(self, token: str, skip:int, limit:int):
+    def get_indexed_pages_by_token(self, token: str, batch_size=MAX_INDEX_SPLITS):
         doc_curser = self.inverted_index.find({"token": token}, {"_id": 0})
-        doc_curser = doc_curser.skip(skip).limit(limit)
-        return doc_curser
-
-def tokenize(content, token_min_len=TOKEN_MIN_LEN, token_max_len=TOKEN_MAX_LEN, lower=True):
-    """Tokenize a piece of text from Wikipedia.
-
-    Set `token_min_len`, `token_max_len` as character length (not bytes!) thresholds for individual tokens.
-
-    Parameters
-    ----------
-    content : str
-        String without markup (see :func:`~gensim.corpora.wikicorpus.filter_wiki`).
-    token_min_len : int
-        Minimal token length.
-    token_max_len : int
-        Maximal token length.
-    lower : bool
-        Convert `content` to lower case?
-
-    Returns
-    -------
-    list of str
-        List of tokens from `content`.
-
-    """
-    return [
-        utils.to_unicode(token) 
-            for token in utils.tokenize(content, lower=lower, errors='ignore')
-            if token_min_len <= len(token) <= token_max_len and not token.startswith('_')
-    ]
+        for i in range(0, MAX_INDEX_SPLITS, batch_size):
+            doc_curser = doc_curser.skip(i).limit(batch_size)
+            for doc in doc_curser:
+                yield doc
