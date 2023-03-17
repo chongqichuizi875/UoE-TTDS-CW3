@@ -21,7 +21,7 @@ def get_freq_from_index(term):
         occurred_page_list = page['page']
         for occurrence in occurred_page_list:
             # only store the page ids where the term occurrences are greater than 3
-            if len(list(occurrence['pos'])) > 3:
+            if len(list(occurrence['pos'])) > 1:
                 freq_dict[occurrence['_id']] = len(list(occurrence['pos']))
     return freq_dict
 
@@ -106,6 +106,7 @@ b = 0.75
 def calculate_bm25_weight_of_term_in_page(term, page_id):
     page_cursor = mongoDB.get_indexed_pages_by_token(token=term)
     page_dict = mongoDB.get_page_by_page_id(page_id)
+    # print(f"page dict: {page_dict}")  # 全是None
     df = 0
     for page in page_cursor:
         df += page['page_count']
@@ -130,15 +131,14 @@ def calculate_sorted_bm25_score_of_query(query_text):
         :return: the calculated score list for each doc page.
     """
     score_map = {}
-    terms = preprocessing.wiki_tokenize(query_text)
+    # terms = preprocessing.wiki_tokenize(query_text)
+    terms = query_text.split()
     occurred_page_id_list = []
     for term in terms:
         freq_dict = dict(get_freq_from_index(term))
-        # print(freq_dict)
         occurred_page_id_list.extend(freq_dict.keys())
 
     occurred_page_id_list = list(set(occurred_page_id_list))
-    # print(len(occurred_page_id_list))
     for i in range(len(occurred_page_id_list)):
         score = 0
         for term in terms:
