@@ -43,9 +43,9 @@ def wiki_introduce(name):
         infos = db_session.query(Infos).filter(Infos.title == title).first()
         db_session.commit()
         db_session.close()
-        query_title = infos.title  # 词条title
-        query_introduce = infos.introduce  # 词条介绍
-        return render_template('wiki.html', title=str(query_title), introduce=str(query_introduce), web_url=web_url)
+        query_title = str(infos.title)  # 词条title
+        query_introduce = str(infos.introduce)  # 词条介绍
+        return render_template('wiki.html', title=query_title, introduce=query_introduce, web_url=web_url)
 
 
 # 搜索结果界面
@@ -92,10 +92,8 @@ def input_value():
     前端-->后端
     (1) input_value: 在输入框中输入的query
     后端-->前端
-    (1) infos_list=[{'title': title1, 'introduce':introduce1},
-                    {'title': title2, 'introduce':introduce2},
-                    ...]: 包含前10条模糊搜索的列表形式，每一个搜索结果用字典储存
-        字典里每一项按顺序分别为词条title和词条introduce
+    (1) infos_list=[{'title': title1}, {'title': title2}, ...]: 包含前10条模糊搜索的列表形式，每一个搜索结果用字典储存
+        字典里包含词条title
     """
     if request.method == 'POST':
         input_value = str(request.get_json()['input_value'])
