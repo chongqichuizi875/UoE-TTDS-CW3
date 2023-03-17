@@ -1,5 +1,4 @@
-/data
-
+data/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -22,6 +21,10 @@ parts/
 sdist/
 var/
 wheels/
+<<<<<<< HEAD
+=======
+pip-wheel-metadata/
+>>>>>>> master
 share/python-wheels/
 *.egg-info/
 .installed.cfg
@@ -96,6 +99,10 @@ ipython_config.py
 #   install all needed dependencies.
 #Pipfile.lock
 
+<<<<<<< HEAD
+=======
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+>>>>>>> master
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more

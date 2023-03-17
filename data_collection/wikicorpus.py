@@ -1,4 +1,5 @@
 import bz2
+<<<<<<< HEAD
 import logging
 import multiprocessing
 import signal
@@ -13,11 +14,26 @@ from gensim.corpora.wikicorpus import WikiCorpus, extract_pages, tokenize, IGNOR
 
 from gensim.corpora import Dictionary
 
+=======
+import multiprocessing
+from gensim import utils
+
+from gensim.corpora.wikicorpus import WikiCorpus, extract_pages, IGNORED_NAMESPACES, init_to_ignore_interrupt, logger, PicklingError, filter_wiki
+from gensim.corpora import Dictionary
+
+from data_collection.preprocessing import Preprocessing
+
+>>>>>>> master
 class MyWikiCorpus(WikiCorpus):
     def __init__(self, fname, dictionary={}, lower=True):
         super().__init__(fname, dictionary=dictionary, lower = lower)
         self.metadata = True
+<<<<<<< HEAD
         self.stop_words = set(stopwords.words('english'))
+=======
+        self.wiki_tokenize = Preprocessing().wiki_tokenize
+
+>>>>>>> master
     def get_texts(self):
         articles, articles_all = 0, 0
         positions, positions_all = 0, 0
@@ -85,6 +101,7 @@ class MyWikiCorpus(WikiCorpus):
         else:
             return None
 
+<<<<<<< HEAD
 
     def wiki_tokenize(self, content, token_min_len=TOKEN_MIN_LEN, token_max_len=TOKEN_MAX_LEN, lower=True, stop=True, stemming=True):
         gen = (token for token in utils.tokenize(content, lower=lower, errors='ignore')
@@ -103,6 +120,8 @@ class MyWikiCorpus(WikiCorpus):
     def stemming_tokens(self, gen):
         return (PorterStemmer().stem(token) for token in gen)
 
+=======
+>>>>>>> master
     def save_Dictionary(self, f_path):
         Dictionary((params[0] for params in self.get_tokens())).save_as_text(f_path+"_wordids.txt.bz2")
     def load_Dictionary(self, f_path):

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Wiki Introduction</title>
+
+    <script type="text/javascript" src="/static/vue/vue.min.js"></script>
+
+    <script type="text/javascript" src="/static/axios/axios.min.js"></script>
+    <script type="text/javascript" src="/static/element/index.js"></script>
+    <link rel="stylesheet" href="/static/element/index.css">
+
+</head>
+
+
+<body style="padding:0;margin:0;border:0;">
+
+
+<div>
+    <div style="padding: 30px 0 0 20px">
+        <img src="/static/img/in.jpg" style="height: 100%">
+    </div>
+</div>
+
+
+<div style="width: 1000px;margin: 0 auto;padding: 20px 0 0 0">
+    <center>
+        <div><a style="font-size: 35px">{{ title }}</a></div>
+    </center>
+
+    <div style="padding: 20px 0 0 0 "></div>
+    <center>
+        <div>More in Wikipedia Webpage: <a href="{{ web_url }}wiki/{{ title }}">{{ web_url }}wiki/{{ title }}</a></div>
+<!--        <div><a href="{{ web_url }}">{{ web_url }}</a></div>-->
+    </center>
+
+    <hr>
+
+    <a style="width: 500px ">
+
+        {{ introduce }}
+
+    </a>
+
+
+</div>
+
+
+</body>
+
+</html>
