@@ -4,7 +4,7 @@ from sqlalchemy_config.sqlalchemy_config import db_session, Infos
 from flask_cors import CORS
 from flask import Flask, render_template, request, jsonify
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from ranking import ir_rankings
+# from ranking import ir_rankings
 
 app = Flask(__name__)
 app.jinja_env.variable_start_string = '[[['
@@ -106,10 +106,11 @@ def input_value():
         # e.g. 假如输入框输入ja，则直接从整个wikipedia的词条数据库中获得所有带ja的词条，并选取前10个显示在模糊提示框内
         for i in infos:
             if input_value.lower() in i.title.lower() or input_value.upper() in i.title.upper():
-                infos_list.append({'title': i.title, 'introduce': i.introduce})
+                infos_list.append({'title': i.title})
+                # infos_list.append({'title': i.title, 'introduce': i.introduce})
         infos_list = infos_list[0:10]
         return jsonify(infos_list)
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=12001, debug=app.config["DEBUG"], threaded=False)
+    app.run(host='0.0.0.0', port=5000, debug=app.config["DEBUG"], threaded=False)
