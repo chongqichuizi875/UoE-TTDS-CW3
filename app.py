@@ -3,6 +3,7 @@ from pathlib import Path
 from sqlalchemy_config.sqlalchemy_config import db_session, Infos
 from flask_cors import CORS
 from flask import Flask, render_template, request, jsonify
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 # from ranking import ir_rankings
 
@@ -113,4 +114,4 @@ def input_value():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=app.config["DEBUG"], threaded=False)
+    app.run(host='0.0.0.0', port=12001, debug=app.config["DEBUG"], threaded=False)
