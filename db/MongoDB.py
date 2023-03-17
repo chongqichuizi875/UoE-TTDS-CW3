@@ -1,8 +1,8 @@
 from typing import List
 from db.DBInterface import DBInterface
-
 from pymongo import MongoClient
-from gensim import utils
+import datetime
+
 
 # default thresholds for lengths of individual tokens
 TOKEN_MIN_LEN = 2
@@ -12,6 +12,8 @@ MAX_INDEX_SPLITS = 30
 class MongoDB(DBInterface):
     def __init__(self) -> None:
         # client = MongoClient("mongodb://192.168.224.1:27017/")
+        print('initialize MongoDB......')
+        print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
         client = MongoClient("mongodb://127.0.0.1:27017/")
         self.wiki = client.subwiki
         self.pages = self.wiki.pages
@@ -19,6 +21,10 @@ class MongoDB(DBInterface):
         self.inverted_index.create_index("token")
         self.avg_page_len = self.get_avg_page_len()
         self.page_count = self.get_page_count()
+        print('avg_page_len:::' + str(self.avg_page_len))
+        print('page_count:::'+str(self.page_count))
+        print('initialize MongoDB done.')
+        print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
 
     """  
         id: page_id

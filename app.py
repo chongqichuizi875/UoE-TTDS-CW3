@@ -3,7 +3,7 @@ from pathlib import Path
 from flask_cors import CORS
 from flask import Flask, render_template, request, jsonify
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from ranking import ir_rankings
+from ranking import ir_rankings_2
 
 app = Flask(__name__)
 
