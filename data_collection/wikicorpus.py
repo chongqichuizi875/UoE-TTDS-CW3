@@ -1,20 +1,4 @@
 import bz2
-<<<<<<< HEAD
-import logging
-import multiprocessing
-import signal
-from gensim import utils
-import nltk
-import ssl
-from nltk.stem import PorterStemmer
-from nltk.corpus import stopwords
-
-from nltk.tokenize import TweetTokenizer
-from gensim.corpora.wikicorpus import WikiCorpus, extract_pages, tokenize, IGNORED_NAMESPACES, TOKEN_MAX_LEN, TOKEN_MIN_LEN, init_to_ignore_interrupt, logger, PicklingError, filter_wiki
-
-from gensim.corpora import Dictionary
-
-=======
 import multiprocessing
 from gensim import utils
 
@@ -23,17 +7,12 @@ from gensim.corpora import Dictionary
 
 from data_collection.preprocessing import Preprocessing
 
->>>>>>> master
 class MyWikiCorpus(WikiCorpus):
     def __init__(self, fname, dictionary={}, lower=True):
         super().__init__(fname, dictionary=dictionary, lower = lower)
         self.metadata = True
-<<<<<<< HEAD
-        self.stop_words = set(stopwords.words('english'))
-=======
         self.wiki_tokenize = Preprocessing().wiki_tokenize
 
->>>>>>> master
     def get_texts(self):
         articles, articles_all = 0, 0
         positions, positions_all = 0, 0
@@ -101,27 +80,6 @@ class MyWikiCorpus(WikiCorpus):
         else:
             return None
 
-<<<<<<< HEAD
-
-    def wiki_tokenize(self, content, token_min_len=TOKEN_MIN_LEN, token_max_len=TOKEN_MAX_LEN, lower=True, stop=True, stemming=True):
-        gen = (token for token in utils.tokenize(content, lower=lower, errors='ignore')
-        if token_min_len <= len(token) <= token_max_len and not token.startswith('_'))
-
-        if stop:
-            gen = self.remove_stop_words(gen)
-
-        if stemming:
-            gen = self.stemming_tokens(gen)
-        return list(gen)
-
-    def remove_stop_words(self,gen):
-        return (token for token in gen if token not in self.stop_words)
-
-    def stemming_tokens(self, gen):
-        return (PorterStemmer().stem(token) for token in gen)
-
-=======
->>>>>>> master
     def save_Dictionary(self, f_path):
         Dictionary((params[0] for params in self.get_tokens())).save_as_text(f_path+"_wordids.txt.bz2")
     def load_Dictionary(self, f_path):

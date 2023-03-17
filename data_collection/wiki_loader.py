@@ -3,25 +3,16 @@ from pymongo import MongoClient, UpdateOne
 from data_collection.wikicorpus import MyWikiCorpus
 from bson import BSON
 
-<<<<<<< HEAD
-client = MongoClient("mongodb://192.168.224.1:27017/")
-pages = client.wiki.pages
-inverted_index = client.wiki.inverted_index
-=======
->>>>>>> master
 
 class Wiki_Loader:
     def __init__(self, wiki_path):
         # self.token_dictionary = Dictionary.load_from_text(dict_path)
         # self.wiki = WikiCorpus(wiki_path, dictionary=self.token_dictionary)
         # self.wiki = MyWikiCorpus(wiki_path, dictionary=self.token_dictionary)
-<<<<<<< HEAD
-=======
         client = MongoClient("mongodb://192.168.224.1:27017/")
         self.pages = client.subwiki.pages
         self.inverted_index = client.subwiki.inverted_index
 
->>>>>>> master
         self.wiki = MyWikiCorpus(wiki_path)
         # self.wiki.metadata = True
         self.page_list = list()
@@ -32,13 +23,6 @@ class Wiki_Loader:
         load pages and create inverted index
         transfer to mongodb
     """ 
-<<<<<<< HEAD
-    def _batch_process_wiki(self, load_func, save_func, batch_size):
-        for i, params in enumerate(self.wiki.get_texts()):
-            load_func(params)
-            if i % batch_size == batch_size-1:
-                print("Batch: ", i)
-=======
     def _batch_process_wiki(self, load_func, save_func, batch_size, page_limit):
         for i, params in enumerate(self.wiki.get_texts()):
             load_func(params)
@@ -46,18 +30,10 @@ class Wiki_Loader:
                 break
             if i % batch_size == batch_size-1:
                 print("Processed # of pages: ", i)
->>>>>>> master
                 save_func()
 
         save_func()
 
-<<<<<<< HEAD
-    def batch_process_pages(self, batch_size=100000):
-        self._batch_process_wiki(self.load_page, self.save_pages, batch_size)
-
-    def batch_process_inverted_index(self, batch_size=100000):
-        self._batch_process_wiki(self.load_inverted_index, self.save_inverted_index, batch_size)
-=======
     def batch_process_pages(self, batch_size=100000, page_limit=None):
         if page_limit:
             page_limit -= 1
@@ -67,7 +43,6 @@ class Wiki_Loader:
         if page_limit:
             page_limit -= 1
         self._batch_process_wiki(self.load_inverted_index, self.save_inverted_index, batch_size, page_limit)
->>>>>>> master
 
     def process__wiki(self, f):
         params = self.wiki.process_wiki_page(f)
@@ -91,10 +66,7 @@ class Wiki_Loader:
         tokens, (pageid, title, text) = params
         self.page_list.append({"_id": pageid, 
                 "title": title,
-<<<<<<< HEAD
-=======
                 "page_len": len(tokens),
->>>>>>> master
                 "text": text})
 
     def create_inverted_index(self, token, pageid, idx):
@@ -107,19 +79,12 @@ class Wiki_Loader:
         if pageid not in temp[token]['pages']:
             temp[token]['pages'][pageid] = {
                 '_id': pageid,
-<<<<<<< HEAD
-=======
                 'tf': 0,
->>>>>>> master
                 'pos': []
             }
             temp[token]['page_count'] += 1
         temp[token]['pages'][pageid]['pos'].append(idx) 
-<<<<<<< HEAD
-        idx += 1
-=======
         temp[token]['pages'][pageid]['tf'] += 1
->>>>>>> master
 
 
     # def create_inverted_index(self, token, pageid, idx):
@@ -139,11 +104,7 @@ class Wiki_Loader:
 
     def save_pages(self):
         if self.page_list:
-<<<<<<< HEAD
-            pages.insert_many(self.page_list)
-=======
             self.pages.insert_many(self.page_list)
->>>>>>> master
             self.page_list.clear()
 
     def save_inverted_index(self):
@@ -152,11 +113,7 @@ class Wiki_Loader:
             for v in idx_dict.values():
                 v['pages'] = list(v['pages'].values())
                 
-<<<<<<< HEAD
-            inverted_index.insert_many(list(idx_dict.values()))
-=======
             self.inverted_index.insert_many(list(idx_dict.values()))
->>>>>>> master
             self.inverted_index_dict.clear()
     def save_single_inverted_index(self):
         op_list = list()
@@ -169,11 +126,7 @@ class Wiki_Loader:
                         },
                         upsert= True
             ))
-<<<<<<< HEAD
-        inverted_index.bulk_write(op_list, ordered=False)
-=======
         self.inverted_index.bulk_write(op_list, ordered=False)
->>>>>>> master
     #                
     # def save_inverted_index(self):
     #     if self.inverted_index_dict:

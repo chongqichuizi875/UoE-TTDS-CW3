@@ -251,3 +251,41 @@ the_first_bm25_returned_page_content = the_first_bm25_returned_page['text']
 print("title::::bm25")
 print(the_first_bm25_returned_page_title)
 # %%
+class Node:
+    def __init__(self):
+        self.children = {}
+        self.is_leaf = False
+        self.words = []
+
+class Trie:
+    def __init__(self):
+        self.root = Node()
+
+    def add_word(self, word):
+        node = self.root
+        for char in word:
+            if char not in node.children:
+                node.children[char] = Node()
+            node = node.children[char]
+        node.is_leaf = True
+        node.words.append(word)
+
+    def search(self, prefix):
+        node = self.root
+        for char in prefix:
+            if char not in node.children:
+                return []
+            node = node.children[char]
+        return node.words
+
+# Example usage
+trie = Trie()
+trie.add_word("apple")
+trie.add_word("application")
+trie.add_word("apartment")
+trie.add_word("apex")
+trie.add_word("apostle")
+
+prefix = "ap"
+suggestions = trie.search(prefix)
+print(suggestions)
