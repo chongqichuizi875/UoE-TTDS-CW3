@@ -1,15 +1,18 @@
-from flask import Flask, render_template, request, jsonify
+import sys
+from pathlib import Path
 from sqlalchemy_config.sqlalchemy_config import db_session, Infos
 from flask_cors import CORS
-from ranking import ir_rankings
+from flask import Flask, render_template, request, jsonify
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# from ranking import ir_rankings
 
 app = Flask(__name__)
-
+app.jinja_env.variable_start_string = '[[['
+app.jinja_env.variable_end_string = ']]]'
 CORS().init_app(app)
 
 web_url = 'https://en.wikipedia.org/'
-
-infos_list_wiki = []
 
 
 @app.route('/')
@@ -40,9 +43,9 @@ def wiki_introduce(name):
         infos = db_session.query(Infos).filter(Infos.title == title).first()
         db_session.commit()
         db_session.close()
-        query_title = infos.title  # 词条title
-        query_introduce = infos.introduce  # 词条介绍
-        return render_template('wiki.html', title=str(query_title), introduce=str(query_introduce), web_url=web_url)
+        query_title = str(infos.title)  # 词条title
+        query_introduce = str(infos.introduce)  # 词条介绍
+        return render_template('wiki.html', title=query_title, introduce=query_introduce, web_url=web_url)
 
 
 # 搜索结果界面
@@ -67,24 +70,17 @@ def search_results(name):
     if request.method == 'POST':
         title = str(name)
         page_id = int(request.get_json()['id'])
-        infos_list_wiki.clear()
-        # # 数据库操作
-        # infos = db_session.query(Infos).filter().all()
-        # db_session.commit()
-        # db_session.close()
-        # infos_list = []
-        # for i in infos:
-        #     # 不管是大写小写都能搜索出结果
-        #     if title.lower() in str(i.title).lower() or title.upper() in str(i.title).upper():
-        #         infos_list.append({'title': i.title, 'introduce': i.introduce[0:600] + '...'})
-        # len_number = int(len(infos_list))
-        # 第1页就是放搜索结果[0:10], 第2页[11:20]，以此类推
-        infos_list_wiki.append(ir_rankings.get_tfidf_results(query_text=title))
-        len_number = int(len(infos_list_wiki))
+        # 数据库操作
+        infos = db_session.query(Infos).filter().all()
+        db_session.commit()
+        db_session.close()
         infos_list = []
-        for wiki in infos_list_wiki:
-            wiki['introduce'] = wiki['introduce'][0:600]
-            infos_list.append({'title': wiki['title'], 'introduce': wiki['introduce'] + '...'})
+        for i in infos:
+            # 不管是大写小写都能搜索出结果
+            if title.lower() in str(i.title).lower() or title.upper() in str(i.title).upper():
+                infos_list.append({'title': i.title, 'introduce': i.introduce[0:600] + '...'})
+        len_number = int(len(infos_list))
+        # 第1页就是放搜索结果[0:10], 第2页[11:20]，以此类推
         infos_list = infos_list[(page_id * 10 - 10):(page_id * 10)]
         return jsonify({'infos_list': infos_list, 'len_number': len_number})
 
@@ -96,10 +92,8 @@ def input_value():
     前端-->后端
     (1) input_value: 在输入框中输入的query
     后端-->前端
-    (1) infos_list=[{'title': title1, 'introduce':introduce1},
-                    {'title': title2, 'introduce':introduce2},
-                    ...]: 包含前10条模糊搜索的列表形式，每一个搜索结果用字典储存
-        字典里每一项按顺序分别为词条title和词条introduce
+    (1) infos_list=[{'title': title1}, {'title': title2}, ...]: 包含前10条模糊搜索的列表形式，每一个搜索结果用字典储存
+        字典里包含词条title
     """
     if request.method == 'POST':
         input_value = str(request.get_json()['input_value'])
@@ -111,10 +105,11 @@ def input_value():
         # e.g. 假如输入框输入ja，则直接从整个wikipedia的词条数据库中获得所有带ja的词条，并选取前10个显示在模糊提示框内
         for i in infos:
             if input_value.lower() in i.title.lower() or input_value.upper() in i.title.upper():
-                infos_list.append({'title': i.title, 'introduce': i.introduce})
+                infos_list.append({'title': i.title})
+                # infos_list.append({'title': i.title, 'introduce': i.introduce})
         infos_list = infos_list[0:10]
         return jsonify(infos_list)
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=app.config["DEBUG"], threaded=False)
+    app.run(host='0.0.0.0', port=12001, debug=app.config["DEBUG"], threaded=False)

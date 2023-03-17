@@ -1,4 +1,3 @@
-import multiprocessing
 import sys
 from pathlib import Path
 import math
@@ -174,6 +173,12 @@ def calculate_sorted_bm25_score_of_query(query_text):
     # print('parallel processing done.')
     # print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
 
+    # print('start multi-processes processing result.....')
+    # print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+    # score_map = multi_process(terms, occurred_page_id_list, freq_dict_list)
+    # print('parallel processing done.')
+    # print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+
     sorted_score_map = dict(sorted(score_map.items(), key=lambda i: i[1], reverse=True))
     print('sorting done.')
     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
@@ -221,22 +226,46 @@ def parallel_calculate(token_list, page_list, freq_dict_list):
     return final_score_dict
 
 
-print('start running bm25 algorithm.....')
-print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
-bm25_results = calculate_sorted_bm25_score_of_query("sunday")
-print('bm25 algorithm is done.')
-print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+def multi_process(token_list, page_list, freq_dict_list):
+    num_of_processes = 2
+    pool = Pool(processes=num_of_processes)
+    cells_per_thread = int(len(page_list) / num_of_processes)
+    remaining_cells = int(len(page_list) % num_of_processes)
+    results = []
+    for i in range(num_of_processes):
+        start_pos = i * cells_per_thread
+        if i != num_of_processes-1:
+            end_pos = (i + 1) * cells_per_thread - 1
+        else:
+            end_pos = ((i + 1) * cells_per_thread - 1) + remaining_cells
+        results.append(pool.apply_async(my_func, args=(token_list, page_list[start_pos: end_pos+1], freq_dict_list)))
 
-print("bm25_results:::")
-print(bm25_results)
-the_first_bm25_returned_page = mongoDB.get_pages_by_list_of_ids(ids=list(bm25_results.keys()))[0]
-the_first_bm25_returned_page_title = the_first_bm25_returned_page['title']
-the_first_bm25_returned_page_content = the_first_bm25_returned_page['text']
-print("title::::bm25")
-print(the_first_bm25_returned_page_title)
+    pool.close()
+    pool.join()
 
-print("text::::bm25")
-print(the_first_bm25_returned_page_content)
+    final_score_dict = {}
+    for result in results:
+        final_score_dict = dict(ChainMap(final_score_dict, result))
+    return final_score_dict
+
+
+if __name__ == '__main__':
+    print('start running bm25 algorithm.....')
+    print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+    bm25_results = calculate_sorted_bm25_score_of_query("sunday")
+    print('bm25 algorithm is done.')
+    print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+
+    print("bm25_results:::")
+    print(bm25_results)
+    the_first_bm25_returned_page = mongoDB.get_pages_by_list_of_ids(ids=list(bm25_results.keys()))[0]
+    the_first_bm25_returned_page_title = the_first_bm25_returned_page['title']
+    the_first_bm25_returned_page_content = the_first_bm25_returned_page['text']
+    print("title::::bm25")
+    print(the_first_bm25_returned_page_title)
+
+    print("text::::bm25")
+    print(the_first_bm25_returned_page_content)
 
 
 
