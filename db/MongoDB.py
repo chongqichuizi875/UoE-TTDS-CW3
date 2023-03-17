@@ -11,8 +11,8 @@ MAX_INDEX_SPLITS = 30
 
 class MongoDB(DBInterface):
     def __init__(self) -> None:
-        client = MongoClient("mongodb://192.168.224.1:27017/")
-        # client = MongoClient("mongodb://127.0.0.1:27017/")
+        # client = MongoClient("mongodb://192.168.224.1:27017/")
+        client = MongoClient("mongodb://127.0.0.1:27017/")
         self.wiki = client.subwiki
         self.pages = self.wiki.pages
         self.inverted_index = self.wiki.inverted_index
@@ -51,6 +51,7 @@ class MongoDB(DBInterface):
             doc_curser = doc_curser.skip(i).limit(batch_size)
             for doc in doc_curser:
                 yield doc
+
     def get_page_count(self):
         return self.pages.count_documents({})
 

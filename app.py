@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request, jsonify
-from sqlalchemy_config.sqlalchemy_config import db_session, Infos
+import sys
+from pathlib import Path
 from flask_cors import CORS
+from flask import Flask, render_template, request, jsonify
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from ranking import ir_rankings
 
 app = Flask(__name__)
@@ -68,18 +70,8 @@ def search_results(name):
         title = str(name)
         page_id = int(request.get_json()['id'])
         infos_list_wiki.clear()
-        # # 数据库操作
-        # infos = db_session.query(Infos).filter().all()
-        # db_session.commit()
-        # db_session.close()
-        # infos_list = []
-        # for i in infos:
-        #     # 不管是大写小写都能搜索出结果
-        #     if title.lower() in str(i.title).lower() or title.upper() in str(i.title).upper():
-        #         infos_list.append({'title': i.title, 'introduce': i.introduce[0:600] + '...'})
-        # len_number = int(len(infos_list))
-        # 第1页就是放搜索结果[0:10], 第2页[11:20]，以此类推
-        infos_list_wiki.append(ir_rankings.get_tfidf_results(query_text=title))
+
+        infos_list_wiki.extend(ir_rankings.get_tfidf_results(query_text=title))
         len_number = int(len(infos_list_wiki))
         infos_list = []
         for wiki in infos_list_wiki:
@@ -109,12 +101,12 @@ def input_value():
         infos_list = []
         # 不区分大小写，建议模糊搜索直接按照以下逻辑开发
         # e.g. 假如输入框输入ja，则直接从整个wikipedia的词条数据库中获得所有带ja的词条，并选取前10个显示在模糊提示框内
-        for i in infos:
-            if input_value.lower() in i.title.lower() or input_value.upper() in i.title.upper():
-                infos_list.append({'title': i.title, 'introduce': i.introduce})
-        infos_list = infos_list[0:10]
+        # for i in infos:
+        #     if input_value.lower() in i.title.lower() or input_value.upper() in i.title.upper():
+        #         infos_list.append({'title': i.title, 'introduce': i.introduce})
+        # infos_list = infos_list[0:10]
         return jsonify(infos_list)
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=app.config["DEBUG"], threaded=False)
+    app.run(host='0.0.0.0', port=12001, debug=app.config["DEBUG"], threaded=False)

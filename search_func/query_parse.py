@@ -1,5 +1,4 @@
 import re
-from stemming.porter2 import stem
 import nltk
 from nltk.corpus import stopwords
 from ranking.ir_rankings import calculate_sorted_bm25_score_of_query
