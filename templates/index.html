@@ -38,10 +38,11 @@
         <div style="padding: 30px 0 0 0"></div>
 
 
- <el-tooltip class="item" effect="dark" content="Query Format--If Boolean Search: Term 1 AND Term2, Proximity Search: #15(Term1, Term2)" placement="top-start">
-        <input v-model="input_value" placeholder="Enter Your Query" type="text"
-               style="height: 50px;width: 400px;outline: none;vertical-align: top;border:none">
- </el-tooltip>
+        <el-tooltip class="item" effect="dark" placement="left">
+            <input v-model="input_value" placeholder="Enter Your Query" type="text"
+                   style="height: 50px;width: 400px;outline: none;vertical-align: top;border:none">
+            <div style="width: 250px;" slot="content">Input Query Format<br>Boolean Search: Term 1 AND Term2<br>Proximity Search: #15(Term1, Term2)</div>
+        </el-tooltip>
 
         <button v-on:click="input" type="button"
                 style="background-color: #56b9f4;width: 180px;height: 52px;vertical-align: top;border-style:none;font-size: 18px;font-weight: 700">
