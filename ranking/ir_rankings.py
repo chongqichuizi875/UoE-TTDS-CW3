@@ -21,6 +21,7 @@ def get_freq_from_index(term):
     freq_dict = {}
     page_cursor = mongoDB.get_indexed_pages_by_token(token=term)
     for page in page_cursor:
+        print(page.keys())
         occurred_page_list = page['pages']
         for occurrence in occurred_page_list:
             # only store the page ids where the term occurrences are greater than 3
@@ -254,24 +255,31 @@ def get_bm25_results(query_text):
     results_dict = calculate_sorted_bm25_score_of_query(query_text)
     pages_returned = mongoDB.get_pages_by_list_of_ids(ids=list(results_dict.keys()))
     for page in pages_returned:
-        infos_list.append({'title': page['title'], 'introduce': page['text']})
+        infos_list.append({'doc_id': page['_id'], 'title': page['title'], 'introduce': page['text'][0: 600] + '...'})
     return infos_list
 
-# # if __name__ == '__main__':
-#     print('start running bm25 algorithm.....')
-#     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
-#     bm25_results = calculate_sorted_bm25_score_of_query("sunday")
-#     print('bm25 algorithm is done.')
-#     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
-#
-#     print("bm25_results:::")
-#     print(bm25_results)
-#     the_first_bm25_returned_page = mongoDB.get_pages_by_list_of_ids(ids=list(bm25_results.keys()))[0]
-#     the_first_bm25_returned_page_title = the_first_bm25_returned_page['title']
-#     the_first_bm25_returned_page_content = the_first_bm25_returned_page['text']
-#     print("title::::bm25")
-#     print(the_first_bm25_returned_page_title)
-#
-#     print("text::::bm25")
-#     print(the_first_bm25_returned_page_content)
+
+def process_retrieved_doc_content(doc_id):
+    page_contents = mongoDB.get_page_by_page_id(doc_id)['text']
+    contents_list = str(page_contents).split('\n')
+    
+
+
+if __name__ == '__main__':
+    print('start running bm25 algorithm.....')
+    print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+    bm25_results = calculate_sorted_bm25_score_of_query("sunday")
+    print('bm25 algorithm is done.')
+    print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+
+    print("bm25_results:::")
+    print(bm25_results)
+    the_first_bm25_returned_page = mongoDB.get_pages_by_list_of_ids(ids=list(bm25_results.keys()))[0]
+    the_first_bm25_returned_page_title = the_first_bm25_returned_page['title']
+    the_first_bm25_returned_page_content = the_first_bm25_returned_page['text']
+    print("title::::bm25")
+    print(the_first_bm25_returned_page_title)
+
+    print("text::::bm25")
+    print(the_first_bm25_returned_page_content)
 
