@@ -42,13 +42,26 @@ def wiki_introduce(doc_id, title):
         title = str(title)
         # 数据库操作，获取数据库中匹配的词条
         contents = ir_rankings.process_retrieved_doc_content(doc_id=doc_id)
+        contents_list = str(contents).split('\n')
+        infos_list = []
+        for i in contents_list:
+            if '===' in i:
+                b1 = i.replace('===', '')
+                infos_list.append({'b1': b1, 'code': 'b1'})
+                continue
+            if '==' in i:
+                b2 = i.replace('==', '')
+                infos_list.append({'b2': b2, 'code': 'b2'})
+                continue
+            else:
+                infos_list.append({'info': i, 'code': 'b'})
 
         # infos = db_session.query(Infos).filter(Infos.title == title).first()
         # db_session.commit()
         # db_session.close()
         # query_title = str(infos.title)  # 词条title
         # query_introduce = str(infos.introduce)  # 词条介绍
-        return render_template('wiki.html', title=title, contents=contents, web_url=web_url)
+        return render_template('wiki.html', title=title, web_url=web_url, infos_list=infos_list)
 
 
 # 搜索结果界面
@@ -86,7 +99,7 @@ def search_results(query_str):
 @app.route('/input_value', methods=['POST'])
 def input_value():
     """
-    -- 输入框输入query，并显示模糊搜索
+    -- 输入框输入query，并显示query suggestion
     前端-->后端
     (1) input_value: 在输入框中输入的query
     后端-->前端
