@@ -13,8 +13,9 @@ class Wiki_Loader:
         # self.wiki = MyWikiCorpus(wiki_path, dictionary=self.token_dictionary)
         # client = MongoClient("mongodb://192.168.224.1:27017/")
         client = MongoClient("mongodb://localhost:27017/")
-        self.pages = client.subwiki.pages
-        self.inverted_index = client.subwiki.inverted_index
+        db = client.subwiki
+        self.pages = db.pages
+        self.inverted_index = db.inverted_index
 
         self.wiki = MyWikiCorpus(wiki_path)
         # self.wiki.metadata = True
@@ -47,13 +48,9 @@ class Wiki_Loader:
         save_func()
 
     def batch_process_pages(self, batch_size=100000, page_limit=None):
-        if page_limit:
-            page_limit -= 1
         self._batch_process_wiki(self.load_page, self.save_pages, batch_size, page_limit)
 
     def batch_process_inverted_index(self, batch_size=100000, page_limit=None):
-        if page_limit:
-            page_limit -= 1
         self._batch_process_wiki(self.load_inverted_index, self.save_inverted_index, batch_size, page_limit)
 
     def process_single_wiki(self, f):

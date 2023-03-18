@@ -204,12 +204,14 @@ tokens =MyWikiCorpus("").wiki_tokenize("sunday")
 gen = MongoDB().get_indexed_pages_by_token(tokens[0])
 for x in gen:
     print(x)
+#%%
 from data_collection.wiki_loader import Wiki_Loader
 
 wiki_path = "/mnt/e/wiki/enwiki-latest-pages-articles-multistream.xml.bz2"
 loader = Wiki_Loader(wiki_path)
 # loader.batch_process_pages(batch_size=50000, page_limit=500000)
-loader.batch_process_inverted_index(batch_size=50000, page_limit=500000)
+# loader.batch_process_inverted_index(batch_size=50000, page_limit=500000)
+loader.batch_process_inverted_index(batch_size=100, page_limit=1000)
 # loader.batch_process_inverted_index()
 #%%
 loader.batch_process_inverted_index(batch_size=50000, page_limit=500000)
@@ -370,3 +372,12 @@ trie.load()
 # trie["computerscience"] = 0
 for i in trie.items():
     print(i)
+#%%
+from db.MongoDB import MongoDB
+db =MongoDB()
+
+x = db.get_high_freq_tokens()
+# %%
+for i in x:
+    print(i)
+# %%

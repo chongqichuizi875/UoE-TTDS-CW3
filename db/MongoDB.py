@@ -1,6 +1,6 @@
 from typing import List
 from db.DBInterface import DBInterface
-from pymongo import MongoClient
+from pymongo import MongoClient, DESCENDING
 import datetime
 
 
@@ -15,14 +15,15 @@ class MongoDB(DBInterface):
         print('initialize MongoDB......')
         print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
         client = MongoClient("mongodb://127.0.0.1:27017/")
+        # client = MongoClient("mongodb://192.168.224.1:27017/")
         self.wiki = client.subwiki
         self.pages = self.wiki.pages
         self.inverted_index = self.wiki.inverted_index
         self.inverted_index.create_index("token")
-        self.avg_page_len = self.get_avg_page_len()
-        self.page_count = self.get_page_count()
-        print('avg_page_len:::' + str(self.avg_page_len))
-        print('page_count:::'+str(self.page_count))
+        # self.avg_page_len = self.get_avg_page_len()
+        # self.page_count = self.get_page_count()
+        # print('avg_page_len:::' + str(self.avg_page_len))
+        # print('page_count:::'+str(self.page_count))
         print('initialize MongoDB done.')
         print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
 
@@ -68,3 +69,13 @@ class MongoDB(DBInterface):
 
     def get_page_titles(self):
         return self.pages.find({},{"_id":0, "title":1})
+    
+    def get_token_freqs(self):
+        return self.inverted_index.aggregate([
+            {"$unwind": "$pages"},
+            {'$group': {
+                "_id": "$token",
+                "freq": {"$sum":"$pages.tf"}
+            }},
+            {"$sort": {'freq':-1}}
+        ])
