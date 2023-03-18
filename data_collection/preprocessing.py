@@ -7,6 +7,7 @@ from gensim.corpora.wikicorpus import TOKEN_MAX_LEN, TOKEN_MIN_LEN
 class Preprocessing():
     def __init__(self) -> None:
         self.stop_words = set(stopwords.words('english'))
+
     def wiki_tokenize(self, content, token_min_len=TOKEN_MIN_LEN, token_max_len=TOKEN_MAX_LEN, lower=True, stop=True, stemming=True, len_filter=True):
         if len_filter:
             gen = (token for token in tokenize(content, lower=lower, errors='ignore')

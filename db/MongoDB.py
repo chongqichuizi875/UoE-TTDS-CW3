@@ -2,7 +2,7 @@ from typing import List
 from db.DBInterface import DBInterface
 
 from pymongo import MongoClient
-from gensim import utils
+
 
 # default thresholds for lengths of individual tokens
 TOKEN_MIN_LEN = 2
@@ -58,3 +58,6 @@ class MongoDB(DBInterface):
         return next(self.pages.aggregate([
             { '$project': { 'avg':{'$avg': '$page_len'}} }
         ]))['avg']
+
+    def get_page_titles(self):
+        return self.pages.find({},{"_id":0, "title":1})

@@ -137,7 +137,7 @@ from data_collection.wikicorpus import MyWikiCorpus
 wiki = MyWikiCorpus(wiki_path)
 # wiki.save_Dictionary("/mnt/e/wiki/results/enwiki1/enwiki")
 loader = Wiki_Loader(wiki_path)
-loader.batch_process_pages(10000)
+loader.batch_process_pages(100)
 # loader.batch_process_inverted_index(50000)
 #%%
 loader.batch_process_pages(100)
@@ -289,3 +289,84 @@ trie.add_word("apostle")
 prefix = "ap"
 suggestions = trie.search(prefix)
 print(suggestions)
+
+# %%
+#%%
+import marisa_trie
+from db.MongoDB import MongoDB
+db = MongoDB()
+trie = marisa_trie.Trie([x['title'] for x in db.get_page_titles() ])
+trie.save("subwiki.marisa")
+# %%
+trie.keys('Compu')
+#%%
+import string
+import datrie
+trie = datrie.BaseTrie(string.ascii_lowercase)
+#%%
+trie['abc'] = 0
+trie['abcd'] = 1
+trie['acde'] = 2
+
+#%%
+trie.update([('abc', 10)])
+# trie['acde']
+#%%
+trie.values('ab')
+#%%
+import torch
+from transformers import T5Tokenizer, T5ForConditionalGeneration
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+tokenizer = T5Tokenizer.from_pretrained('castorini/doc2query-t5-base-msmarco')
+model = T5ForConditionalGeneration.from_pretrained('castorini/doc2query-t5-base-msmarco')
+model.to(device)
+# %%
+doc_text = 'The presence of communication amid scientific minds was equally important to the success of the Manhattan Project as scientific intellect was. The only cloud hanging over the impressive achievement of the atomic researchers and engineers is what their success truly meant; hundreds of thousands of innocent lives obliterated.'
+
+input_ids = tokenizer.encode(doc_text, return_tensors='pt').to(device)
+outputs = model.generate(
+    input_ids=input_ids,
+    max_length=64,
+    do_sample=True,
+    top_k=10,
+    num_return_sequences=3)
+
+for i in range(3):
+    print(f'sample {i + 1}: {tokenizer.decode(outputs[i], skip_special_tokens=True)}')
+#%%
+from db.MongoDB import MongoDB
+from time import time
+db = MongoDB()
+s = time()
+db.get_page_by_page_id("12")
+e = time()
+print(e-s)
+# %%
+from trie_search.tire_tree import Tire_Tree
+path = "./data/my.trie"
+tt = Tire_Tree(path)
+tt.load_from_db()
+# tt.load()
+# %%
+# tt.save()
+results = tt.search('computer')
+#%%
+if results:
+    tt.hit(results[2])
+
+results = tt.search('computer')
+#%%
+
+# %%
+import datrie
+import string
+
+# trie = datrie.BaseTrie(string.ascii_lowercase+' ')
+
+trie.load()
+#%%
+# trie["computerscience"] = 0
+for i in trie.items():
+    print(i)

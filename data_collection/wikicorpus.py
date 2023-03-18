@@ -1,6 +1,8 @@
 import bz2
 import multiprocessing
 from gensim import utils
+import logging
+import os
 
 from gensim.corpora.wikicorpus import WikiCorpus, extract_pages, IGNORED_NAMESPACES, init_to_ignore_interrupt, logger, PicklingError, filter_wiki
 from gensim.corpora import Dictionary
@@ -12,6 +14,13 @@ class MyWikiCorpus(WikiCorpus):
         super().__init__(fname, dictionary=dictionary, lower = lower)
         self.metadata = True
         self.wiki_tokenize = Preprocessing().wiki_tokenize
+        self.set_logger()
+
+    def set_logger(self):
+        self.logger = logging.getLogger(__name__)
+        if not os.path.exists("Logs"):
+            os.makedirs("Logs")
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%a, %d %b %Y %H:%M:%S', filename='Logs/process_wiki.log', filemode='w')
 
     def get_texts(self):
         articles, articles_all = 0, 0
