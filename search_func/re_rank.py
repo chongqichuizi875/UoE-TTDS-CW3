@@ -6,3 +6,4 @@ class ReRank(object):
     def __call__(self, *args, **kwargs):
         return self.re_rank_list
 
+    def previous_result(self):

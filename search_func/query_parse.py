@@ -1,14 +1,14 @@
 import math
 import re
 import time
-
+from cachetools import cached
 import nltk
 from nltk.corpus import stopwords
 from db.MongoDB import MongoDB
 from nltk.tokenize import TweetTokenizer
 from nltk.stem import PorterStemmer
 from data_collection.preprocessing import Preprocessing
-from ranking.ir_rankings_2 import calculate_sorted_bm25_score_of_query
+# from ranking.ir_rankings_2 import calculate_sorted_bm25_score_of_query
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -41,6 +41,7 @@ class DBSearch(object):
             filtered_list = [PorterStemmer().stem(token) for token in filtered_list]
         return list(filter(lambda x: x.isalnum(), filtered_list))
 
+    @cached(cache={})
     def single_search(self, token: str) -> list:
         """
         return the doc_list:
@@ -123,6 +124,7 @@ class DBSearch(object):
                         output_list.append(id)
         return output_list
 
+    @cached(cache={})
     def free_search(self, query: str):
         begin = time.time()
         sorted_score_map = self.bm25_sorted(query)
@@ -152,7 +154,7 @@ class DBSearch(object):
                 page_count += doc['page_count']
                 for id_pos_dict in doc['page']:
                     freq = len(id_pos_dict['pos'])
-                    if freq > 1:
+                    if freq > 3:
                         freq_dict[id_pos_dict['_id']] = freq
             return freq_dict, page_count
         except:
@@ -182,9 +184,11 @@ class DBSearch(object):
                 for page_id in freq_dict.keys():
                     page_dict = self.inverted_index_db.get_page_by_page_id(page_id)
                     tf = freq_dict[page_id]  # term freq
-                    page_len = len(Preprocessing().wiki_tokenize(page_dict['text'], lower=False, stop=False, stemming=False, len_filter=False))
-                    K = k1 * (1 - b + (b * (page_len / avg_page_len)))
-                    relevance = (tf * (k1 + 1)) / (tf + K)
+                    # page_len = len(Preprocessing().wiki_tokenize(page_dict['text'], lower=False, stop=False, stemming=False, len_filter=False))
+                    # page_len 要改
+                    page_len = 1000
+                    k = k1 * (1 - b + (b * (page_len / avg_page_len)))
+                    relevance = (tf * (k1 + 1)) / (tf + k)
                     if page_id not in score_dict.keys():
                         score_dict[page_id] = 0
                     score_dict[page_id] += idf * relevance
@@ -277,10 +281,20 @@ class QuerySelection(object):
         return self.result
 
 
-query = '["scientific reasoning" AND NOT investigating]'
+# query = '["scientific reasoning" AND NOT investigating]'
+query = 'hi I am jack'
 mongodb = MongoDB()
 dbsearch = DBSearch(inverted_index_db=mongodb)
-search = QuerySelection(query, dbsearch)
-result = search()
+time1 = time.time()
+result = QuerySelection(query, dbsearch)()
+time2 = time.time()
+print(f"first run: {time2-time1}s")
 print(f"query: {query}")
 print(f"result: {result}")
+time1 = time.time()
+result = QuerySelection(query, dbsearch)()
+time2 = time.time()
+print(f"second run: {time2-time1}s")
+print(f"query: {query}")
+print(f"result: {result}")
+
