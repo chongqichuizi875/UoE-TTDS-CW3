@@ -1,9 +1,8 @@
 import sys
+import re
 from pathlib import Path
-from sqlalchemy_config.sqlalchemy_config import db_session, Infos
 from flask_cors import CORS
 from flask import Flask, render_template, request, jsonify
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from ranking import ir_rankings
 
@@ -41,15 +40,15 @@ def wiki_introduce(doc_id, title):
         doc_id = str(doc_id)
         title = str(title)
         # 数据库操作，获取数据库中匹配的词条
-        contents = ir_rankings.process_retrieved_doc_content(doc_id=doc_id)
-        contents_list = str(contents).split('\n')
+        # contents = ir_rankings.process_retrieved_doc_content(doc_id=doc_id)
+        contents_list = ir_rankings.process_retrieved_doc_content(doc_id=doc_id)
         infos_list = []
         for i in contents_list:
-            if '===' in i:
+            if re.match('^===.*===$', i):
                 b1 = i.replace('===', '')
                 infos_list.append({'b1': b1, 'code': 'b1'})
                 continue
-            if '==' in i:
+            if re.match('^==.*==$', i):
                 b2 = i.replace('==', '')
                 infos_list.append({'b2': b2, 'code': 'b2'})
                 continue
@@ -108,15 +107,15 @@ def input_value():
     """
     if request.method == 'POST':
         input_value = str(request.get_json()['input_value'])
-        infos = db_session.query(Infos).filter().all()
-        db_session.commit()
-        db_session.close()
+        # infos = db_session.query(Infos).filter().all()
+        # db_session.commit()
+        # db_session.close()
         infos_list = []
         # 不区分大小写，建议模糊搜索直接按照以下逻辑开发
         # e.g. 假如输入框输入ja，则直接从整个wikipedia的词条数据库中获得所有带ja的词条，并选取前10个显示在模糊提示框内
-        for i in infos:
-            if input_value.lower() in i.title.lower() or input_value.upper() in i.title.upper():
-                infos_list.append({'title': i.title})
+        # for i in infos:
+        #     if input_value.lower() in i.title.lower() or input_value.upper() in i.title.upper():
+        #         infos_list.append({'title': i.title})
                 # infos_list.append({'title': i.title, 'introduce': i.introduce})
         infos_list = infos_list[0:10]
         return jsonify(infos_list)
