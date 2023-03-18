@@ -2,21 +2,34 @@ import math
 import re
 import time
 from cachetools import cached
-import nltk
+import numpy as np
 from nltk.corpus import stopwords
 from db.MongoDB import MongoDB
-from nltk.tokenize import TweetTokenizer
-from nltk.stem import PorterStemmer
+import sys
 from data_collection.preprocessing import Preprocessing
-# from ranking.ir_rankings_2 import calculate_sorted_bm25_score_of_query
+from functools import wraps
 
-nltk.download('stopwords')
-nltk.download('punkt')
+# from ranking.ir_rankings_2 import calculate_sorted_bm25_score_of_query
+VERBOSE = False
+# nltk.download('stopwords')
+# nltk.download('punkt')
 stop_words = set(stopwords.words('english'))
-avg_page_len = 868
-N = 127332
 k1 = 2
 b = 0.75
+
+
+def timeit(func):
+    @wraps(func)
+    def timeit_wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        total_time = end_time - start_time
+        sys.stdout.write(f'Function {func.__name__}{args} {kwargs} Took {total_time:.4f} seconds\n')
+        return result
+
+    return timeit_wrapper
+
 
 class DBSearch(object):
     """
@@ -25,23 +38,19 @@ class DBSearch(object):
     3: link to the database
     """
 
-    def __init__(self, inverted_index_db: MongoDB) -> None:
+    def __init__(self, inverted_index_db: MongoDB, verbose=VERBOSE) -> None:
         self.token2index = {}
         self.freq_dicts = {}
         self.inverted_index_db = inverted_index_db
+        self.verbose = verbose
 
     def preprocessing(self, text, stemming=True, stopping=True):
         """This functioon will preprocess the text passed in,
         remove the stopping words of English, stemming words,
         and return a list of tokens after processing.
         """
-        token_list = TweetTokenizer().tokenize(text)
-        filtered_list = [term.lower() for term in token_list if term not in stop_words or not stopping]
-        if stemming:
-            filtered_list = [PorterStemmer().stem(token) for token in filtered_list]
-        return list(filter(lambda x: x.isalnum(), filtered_list))
+        return Preprocessing().wiki_tokenize(text)
 
-    @cached(cache={})
     def single_search(self, token: str) -> list:
         """
         return the doc_list:
@@ -55,21 +64,23 @@ class DBSearch(object):
         """
 
         try:
-            # token = self.preprocessing(token)[0]
-            print(f"token after pre \'{token}\'")
+            token = self.preprocessing(token)[0]
+            if self.verbose:
+                sys.stdout.write(f"token after pre \'{token}\'")
         except:
             return []
         doc_list = []
         try:
             doc_curser = self.inverted_index_db.get_indexed_pages_by_token(token)
             for doc in doc_curser:
-                doc_list += doc['page']
+                doc_list += doc['pages']
             return doc_list
         except:
-            print(f"token {token} not in database")
+            sys.stderr.write(f"token {token} not in database")
 
         return []
 
+    @cached(cache={})
     def boolean_search(self, token: str) -> list:
         """
         wrap the single search because it only search for one token now
@@ -81,6 +92,7 @@ class DBSearch(object):
             id_list.append(location['_id'])
         return id_list
 
+    @cached(cache={})
     def phrase_search(self, phrase: str) -> list:
         """
         phrase -> 'token1 token2'
@@ -103,6 +115,7 @@ class DBSearch(object):
                     output_list.append(id)
         return output_list
 
+    @cached(cache={})
     def proximity_search(self, token1: str, token2: str, distance: int) -> list:
         """
         return the id_list of content containing token1 & token2
@@ -120,42 +133,36 @@ class DBSearch(object):
         for id in common_list:
             for pos1 in dict1[id]:
                 for pos2 in dict2[id]:
-                    if (abs(pos1 - pos2) <= distance):
+                    if abs(pos1 - pos2) <= distance:
                         output_list.append(id)
         return output_list
 
     @cached(cache={})
     def free_search(self, query: str):
-        begin = time.time()
         sorted_score_map = self.bm25_sorted(query)
         # sorted_score_map = calculate_sorted_bm25_score_of_query(query)
-        end = time.time()
-        print(f"bm25 calculating time: {end-begin}")
         result_list = []
         for key in sorted_score_map.keys():
             result_list.append([key, sorted_score_map[key]])
         return result_list
 
-    def calculate_freq(self, token):
-        """
-        :param token:
-        :return: {page_id1: freq1
-                  page_id2: freq2
-                  page_id3: freq3
-                  page_id4: freq4}
+    @timeit
+    @cached(cache={})
+    def calculate_freq(self, token, minimal_freq=5, max_chunk_size=1000):
 
-                  page_count
-        """
-        freq_dict = {}
         try:
+            freq_dict = {}
             doc_curser = self.inverted_index_db.get_indexed_pages_by_token(token)
             page_count = 0
             for doc in doc_curser:
                 page_count += doc['page_count']
-                for id_pos_dict in doc['page']:
-                    freq = len(id_pos_dict['pos'])
-                    if freq > 3:
+                for id_pos_dict in doc['pages']:
+                    freq = id_pos_dict['tf']
+                    if freq > minimal_freq:
                         freq_dict[id_pos_dict['_id']] = freq
+
+            # if len(freq_dict) > max_chunk_size:
+            #     freq_dict = dict(sorted(freq_dict.items(), key=lambda x: x[1], reverse=True)[:max_chunk_size])
             return freq_dict, page_count
         except:
             return {}, 0
@@ -164,6 +171,7 @@ class DBSearch(object):
         for index, token in enumerate(list(set(tokens))):
             self.token2index[token] = index
 
+    @timeit
     def bm25_sorted(self, query: str):
         """
 
@@ -174,28 +182,33 @@ class DBSearch(object):
                   page_id3: weight3
                   page_id4: weight4}
         """
-        # terms = self.preprocessing(query)
-        tokens = query.split()
+        tokens = self.preprocessing(query)
+        # tokens = query.split()
         score_dict = {}
+
+        # freq_dict_list
+        # idf_list = np.log10((self.inverted_index_db.page_count + 0.5) / (page_count_list + 0.5))
+        # print(idf_list.shape)
         for token in tokens:
             freq_dict, page_count = self.calculate_freq(token)
             if len(freq_dict) > 0:
-                idf = math.log10((N+0.5)/(page_count+0.5))
+                print(len(freq_dict))
+                time1 = time.time()
+                idf = math.log10((self.inverted_index_db.page_count - page_count + 0.5) / (page_count + 0.5))
                 for page_id in freq_dict.keys():
                     page_dict = self.inverted_index_db.get_page_by_page_id(page_id)
                     tf = freq_dict[page_id]  # term freq
-                    # page_len = len(Preprocessing().wiki_tokenize(page_dict['text'], lower=False, stop=False, stemming=False, len_filter=False))
-                    # page_len 要改
-                    page_len = 1000
-                    k = k1 * (1 - b + (b * (page_len / avg_page_len)))
+                    page_len = page_dict['page_len']
+                    k = k1 * (1 - b + (b * (page_len / self.inverted_index_db.avg_page_len)))
                     relevance = (tf * (k1 + 1)) / (tf + k)
                     if page_id not in score_dict.keys():
                         score_dict[page_id] = 0
                     score_dict[page_id] += idf * relevance
+                time2 = time.time()
+                print(f"{time2-time1}s")
             else:
                 continue
         return dict(sorted(score_dict.items(), key=lambda x: x[1], reverse=True))
-
 
 
 class QuerySelection(object):
@@ -203,12 +216,13 @@ class QuerySelection(object):
     determine which search method to use according to the syntact of query
     """
 
-    def __init__(self, query: str, dbsearch: DBSearch, recur=False) -> list:
+    def __init__(self, query: str, dbsearch: DBSearch, recur=False, verbose=VERBOSE):
         self.queryList = query.split()
         self.result = []
         self.dbsearch = dbsearch
         self.fuzzy = False  # default exact query
         self.recur = recur  # if created recursively -> must be exact search
+        self.verbose = verbose
 
         if (len(query) == 0):
             return
@@ -217,14 +231,17 @@ class QuerySelection(object):
             # distinguish Exact query or fuzzy query
             if "[" not in query:
                 self.fuzzy = True
-                print("Fuzzy query!")
+                if self.verbose:
+                    sys.stdout.write("Fuzzy query!")
             else:
                 query.replace('[', '').replace(']', '')
-                print("Exact query! ")
+                if self.verbose:
+                    sys.stdout.write("Exact query! ")
         # boolean search
         if "AND NOT" in query:
             q = query.split(' AND NOT ')
-            print('parsing AND NOT: ')
+            if self.verbose:
+                sys.stdout.write('parsing AND NOT: ')
             op1 = QuerySelection(q[0], dbsearch, True).result
             op2 = QuerySelection(q[1], dbsearch, True).result
             self.result = sorted(list(set(op1) - set(op2)))
@@ -232,7 +249,8 @@ class QuerySelection(object):
             return
         elif " AND" in query:
             q = query.split(' AND ')
-            print('parsing AND: ')
+            if self.verbose:
+                sys.stdout.write('parsing AND: ')
             op1 = QuerySelection(q[0], dbsearch, True).result
             op2 = QuerySelection(q[1], dbsearch, True).result
             self.result = sorted(list(set(op1) & set(op2)))
@@ -240,7 +258,8 @@ class QuerySelection(object):
             return
         elif " OR" in query:
             q = query.split(' OR ')
-            print('parsing OR:')
+            if self.verbose:
+                sys.stdout.write('parsing OR:')
             op1 = QuerySelection(q[0], dbsearch, True).result
             op2 = QuerySelection(q[1], dbsearch, True).result
             self.result = sorted(list(set(op1) | set(op2)))
@@ -251,14 +270,16 @@ class QuerySelection(object):
         if '#' in query:
             r = re.split(r'[^\w]', query)
             r = list(filter(None, r))
-            print('proximity search')
+            if self.verbose:
+                sys.stdout.write('proximity search')
             self.result = self.dbsearch.proximity_search(r[1], r[2], int(r[0]))
 
             return
 
         # phrase search (only 2-word phrase)
         elif '\"' in query:
-            print("phrase search")
+            if self.verbose:
+                sys.stdout.write("phrase search")
             r = re.split(r'[^\w]', query)
             # turn list -> str
             s = str()
@@ -271,7 +292,6 @@ class QuerySelection(object):
         # free search
         else:
             if self.fuzzy:
-                print("free search")
                 self.result = self.dbsearch.free_search(query)
                 return
             else:
@@ -281,20 +301,29 @@ class QuerySelection(object):
         return self.result
 
 
-# query = '["scientific reasoning" AND NOT investigating]'
-query = 'hi I am jack'
+# query = '["Academy Award" AND NOT Oscars]'
+# query = 'how to learn python learn'
+query = 'sunday'
 mongodb = MongoDB()
+time1 = time.time()
 dbsearch = DBSearch(inverted_index_db=mongodb)
+time2 = time.time()
+if VERBOSE:
+    sys.stdout.write(f"DB initialize: {time2 - time1}s")
+    sys.stdout.write("-----------------------------------------------------------------------")
 time1 = time.time()
 result = QuerySelection(query, dbsearch)()
 time2 = time.time()
-print(f"first run: {time2-time1}s")
-print(f"query: {query}")
-print(f"result: {result}")
+if VERBOSE:
+    sys.stdout.write(f"first run: {time2 - time1}s")
+    sys.stdout.write(f"query: {query}")
+    sys.stdout.write(f"result: {result[:10]}")
+    sys.stdout.write("-----------------------------------------------------------------------")
+sys.stdout.write(f"result: {result[:10]}")
 time1 = time.time()
 result = QuerySelection(query, dbsearch)()
 time2 = time.time()
-print(f"second run: {time2-time1}s")
-print(f"query: {query}")
-print(f"result: {result}")
-
+if VERBOSE:
+    print(f"second run: {time2 - time1}s")
+    # print(f"query: {query}")
+    # print(f"result: {result}")
