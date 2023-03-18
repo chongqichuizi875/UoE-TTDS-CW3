@@ -44,6 +44,10 @@ def wiki_introduce(doc_id, title):
         contents_list = ir_rankings.process_retrieved_doc_content(doc_id=doc_id)
         infos_list = []
         for i in contents_list:
+            if re.match('^====.*====$', i):
+                b0 = i.replace('====', '')
+                infos_list.append({'b0': b0, 'code': 'b0'})
+                continue
             if re.match('^===.*===$', i):
                 b1 = i.replace('===', '')
                 infos_list.append({'b1': b1, 'code': 'b1'})
