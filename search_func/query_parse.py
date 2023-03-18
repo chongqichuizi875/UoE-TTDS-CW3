@@ -8,7 +8,7 @@ from db.MongoDB import MongoDB
 from nltk.tokenize import TweetTokenizer
 from nltk.stem import PorterStemmer
 from data_collection.preprocessing import Preprocessing
-from ranking.ir_rankings_2 import calculate_sorted_bm25_score_of_query
+from ranking.ir_rankings import calculate_sorted_bm25_score_of_query
 
 nltk.download('stopwords')
 nltk.download('punkt')

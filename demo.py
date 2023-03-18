@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from db import MongoDB
 from data_collection.preprocessing import Preprocessing
 
-from ranking.ir_rankings_2 import calculate_sorted_bm25_score_of_query
+from ranking.ir_rankings import calculate_sorted_bm25_score_of_query
 
 mongoDB = MongoDB.MongoDB()
 preprocessing = Preprocessing()

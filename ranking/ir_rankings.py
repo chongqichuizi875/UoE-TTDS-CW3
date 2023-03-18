@@ -249,24 +249,29 @@ def multi_process(token_list, page_list, freq_dict_list):
     return final_score_dict
 
 
-if __name__ == '__main__':
-    print('start running bm25 algorithm.....')
-    print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
-    bm25_results = calculate_sorted_bm25_score_of_query("sunday")
-    print('bm25 algorithm is done.')
-    print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+def get_bm25_results(query_text):
+    infos_list = []
+    results_dict = calculate_sorted_bm25_score_of_query(query_text)
+    pages_returned = mongoDB.get_pages_by_list_of_ids(ids=list(results_dict.keys()))
+    for page in pages_returned:
+        infos_list.append({'title': page['title'], 'introduce': page['text']})
+    return infos_list
 
-    print("bm25_results:::")
-    print(bm25_results)
-    the_first_bm25_returned_page = mongoDB.get_pages_by_list_of_ids(ids=list(bm25_results.keys()))[0]
-    the_first_bm25_returned_page_title = the_first_bm25_returned_page['title']
-    the_first_bm25_returned_page_content = the_first_bm25_returned_page['text']
-    print("title::::bm25")
-    print(the_first_bm25_returned_page_title)
-
-    print("text::::bm25")
-    print(the_first_bm25_returned_page_content)
-
-
-
+# # if __name__ == '__main__':
+#     print('start running bm25 algorithm.....')
+#     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+#     bm25_results = calculate_sorted_bm25_score_of_query("sunday")
+#     print('bm25 algorithm is done.')
+#     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
+#
+#     print("bm25_results:::")
+#     print(bm25_results)
+#     the_first_bm25_returned_page = mongoDB.get_pages_by_list_of_ids(ids=list(bm25_results.keys()))[0]
+#     the_first_bm25_returned_page_title = the_first_bm25_returned_page['title']
+#     the_first_bm25_returned_page_content = the_first_bm25_returned_page['text']
+#     print("title::::bm25")
+#     print(the_first_bm25_returned_page_title)
+#
+#     print("text::::bm25")
+#     print(the_first_bm25_returned_page_content)
 
