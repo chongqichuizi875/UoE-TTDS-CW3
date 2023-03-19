@@ -346,9 +346,9 @@ db.get_page_by_page_id("12")
 e = time()
 print(e-s)
 # %%
-from trie_search.tire_tree import Tire_Tree
+from trie_search.tire_tree import Trie_Tree
 path = "./data/my.trie"
-tt = Tire_Tree(path)
+tt = Trie_Tree(path)
 tt.load_from_db()
 # tt.load()
 # %%
@@ -381,3 +381,23 @@ x = db.get_high_freq_tokens()
 for i in x:
     print(i)
 # %%
+ex = ["my quest",
+      r"my 'que",
+      "my question i2",
+      "aoiu2 [fo2lo",
+      "oaiu: "
+      ]
+
+import re
+reg_ex = r"""[\w\s]+\w+$"""
+for e in ex:
+    res = re.search(reg_ex, e)
+    if res:
+        print(True, res[0])
+#%%
+from trie_search.tire_tree import Trie_Tree
+
+tt = Trie_Tree("data/my.trie")
+tt.load()
+#%%
+tt.trie.items()

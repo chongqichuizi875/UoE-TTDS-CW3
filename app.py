@@ -50,7 +50,6 @@ def wiki_introduce(doc_id, title):
         # query_introduce = str(infos.introduce)  # 词条介绍
         return render_template('wiki.html', title=title, contents=contents, web_url=web_url)
 
-
 # 搜索结果界面
 @app.route('/search/<query_str>', methods=['GET', 'POST'])
 def search_results(query_str):
