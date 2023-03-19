@@ -4,13 +4,16 @@ from pathlib import Path
 from flask_cors import CORS
 from flask import Flask, render_template, request, jsonify
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from search_func import query_parse
 from ranking import ir_rankings
+from db.MongoDB import MongoDB
 from trie_search.process_query import Query_Completion
 
 app = Flask(__name__)
 app.jinja_env.variable_start_string = '[[['
 app.jinja_env.variable_end_string = ']]]'
 CORS().init_app(app)
+mongoDB = MongoDB()
 
 web_url = 'https://en.wikipedia.org/'
 
@@ -94,7 +97,7 @@ def search_results(query_str):
         title = str(query_str)
         page_id = int(request.get_json()['id'])
         # 数据库操作
-        infos_list = ir_rankings.get_bm25_results(query_text=query_str)
+        infos_list = query_parse.run_search(query_text=query_str)
 
         len_number = int(len(infos_list))
         # 第1页就是放搜索结果[0:10], 第2页[11:20]，以此类推
