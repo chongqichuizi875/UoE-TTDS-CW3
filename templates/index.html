@@ -41,7 +41,19 @@
         <el-tooltip class="item" effect="dark" placement="left">
             <input v-model="input_value" placeholder="Enter Your Query" type="text"
                    style="height: 50px;width: 400px;outline: none;vertical-align: top;border:none">
-            <div style="width: 250px;" slot="content">Input Query Format<br>Boolean Search: Term 1 AND Term2<br>Proximity Search: #15(Term1, Term2)</div>
+            <div style="width: 300px;" slot="content">
+                Input Format
+                <br>1. Query Format
+                <br>(1) Word: No Quotation Mark, e.g. computer
+                <br>(2) Phrase: Need Quotation Mark, e.g. "computer science"
+                <br>2. Search Format
+                <br>(1) Fuzzy Search: No Bracket, e.g. computer, "computer science"
+                <br>(2) Exact Search: Need Brackets, e.g. [computer], ["computer science"]
+                <br>(3) Proximity Search: [#15(Term1, Term2)], No Bracket means fuzzy search
+                <br>(4) Boolean Search: e.g. [computer AND english], ["computer science" OR teacher], [[#20(Term1, Term2)] AND NOT "computer science"]
+                <br>Boolean Search can be combined arbitrarily (word, phrase, proximity)
+                <!--                Input Format<br>Boolean Search: Term 1 AND Term2<br>Proximity Search: #15(Term1, Term2)-->
+            </div>
         </el-tooltip>
 
         <button id='search_button' v-on:click="input" type="button"
