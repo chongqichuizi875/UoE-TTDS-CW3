@@ -341,7 +341,6 @@ def run_search(query, db):
     page_ids = []
     for result in query_selection:
         page_ids.append(result[0])
-    print(page_ids)
     pages_returned = db.get_pages_by_list_of_ids(ids=page_ids)
     for page in pages_returned:
         infos_list.append({'doc_id': page['_id'], 'title': page['title'], 'introduce': page['text'][0: 600] + '...'})

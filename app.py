@@ -97,7 +97,7 @@ def search_results(query_str):
         title = str(query_str)
         page_id = int(request.get_json()['id'])
         # 数据库操作
-        infos_list = query_parse.run_search(query_text=query_str)
+        infos_list = query_parse.run_search(query=query_str, db=mongoDB)
 
         len_number = int(len(infos_list))
         # 第1页就是放搜索结果[0:10], 第2页[11:20]，以此类推
