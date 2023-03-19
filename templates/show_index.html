@@ -39,9 +39,10 @@
                     <br>2. Search Format
                     <br>(1) Fuzzy Search: No Bracket, e.g. computer, "computer science"
                     <br>(2) Exact Search: Need Brackets, e.g. [computer], ["computer science"]
-                    <br>(3) Proximity Search: [#15(Term1, Term2)], No Bracket means fuzzy search
-                    <br>(4) Boolean Search: e.g. [computer AND english], ["computer science" OR teacher], [[#20(Term1, Term2)] AND NOT "computer science"]
-                    <br>Boolean Search can be combined arbitrarily (word, phrase, proximity)
+                    <br>&nbsp;&nbsp;(i) Proximity Search: [#15(Term1, Term2)], <br>&nbsp;&nbsp;No Bracket means fuzzy search
+                    <br>&nbsp;&nbsp;(ii) Boolean Search: e.g. [computer AND english], <br>&nbsp;&nbsp;["computer science" OR teacher],
+                    <br>&nbsp;&nbsp;[#20(Term1, Term2) AND NOT "computer science"], <br>&nbsp;&nbsp;No Bracket means fuzzy search
+                    <br>&nbsp;&nbsp;Boolean Search can be combined with <br>&nbsp;&nbsp;word, phrase, proximity arbitrarily
                 </div>
             </el-tooltip>
             <button v-on:click="input" type="button"
