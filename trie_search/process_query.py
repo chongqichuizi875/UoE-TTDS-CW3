@@ -1,15 +1,20 @@
-from tire_tree import Trie_Hit, Trie_Log
+# from trie_tree import Trie_Hit, Trie_Log
+from trie_search.trie_tree import Trie_Hit, Trie_Log
 import re
 
 MAX_SUFFIX_WORDS_N = 3
 MAX_TITLE_RESULT_N = 3
 MAX_LOG_RESULT_N = 2
+
 class Query_Completion():
-    def __init__(self, path) -> None:
+    def __init__(self, log_path, hit_path) -> None:
         # history query log
-        self.trie_query_log = Trie_Log(path)
-        self.trie_page_title = Trie_Hit(path)
-        self.suffix_pattern = re.compile(r"""[\w\s]+\w+$""")
+        self.trie_query_log = Trie_Log(log_path)
+        self.trie_page_title = Trie_Hit(hit_path)
+        self.suffix_pattern = re.compile(r"""[\w\s]+$""")
+    def get_info_list(self, query):
+        results = self.parse_query(query)
+        return [{"title": s} for i, s in enumerate(results)]
 
     def parse_query(self, query):
         # 1. history query log (whole match)
@@ -23,20 +28,26 @@ class Query_Completion():
             else:
                 results.extend(query_log)
         
-        suffix = re.search(self.suffix_pattern, query)
+        suffix_match = re.search(self.suffix_pattern, query)
 
-        if suffix:
-            words = suffix[0].split(' ')
+        if suffix_match:
+            prefix = query[:suffix_match.start()]
+            words = suffix_match[0].split(' ')
             if len(words) > MAX_SUFFIX_WORDS_N:
-                words = words[-MAX_SUFFIX_WORDS_N]
+                pre_words = words[:-MAX_SUFFIX_WORDS_N]
+                words = words[-MAX_SUFFIX_WORDS_N:]
+            else:
+                pre_words = []
             
             for i in range(MAX_SUFFIX_WORDS_N):
-                titles = self.trie_page_title.search(' '.join(words[i:]))
-                if titles:
-                    results.extend(titles)
-                if len(results) >= MAX_TITLE_RESULT_N:
-                    results = results[:MAX_TITLE_RESULT_N] 
-                    break
+                tmp_str =' '.join(words[i:]) 
+                if tmp_str:
+                    titles = self.trie_page_title.search(tmp_str)
+                    if titles:
+                        results.extend([prefix+' '.join(pre_words+words[:i]+['\\'+t+ '\\']) for t in titles])
+                    if len(results) >= MAX_TITLE_RESULT_N:
+                        results = results[:MAX_TITLE_RESULT_N] 
+                        break
 
         return results
         

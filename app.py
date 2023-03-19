@@ -5,6 +5,7 @@ from flask_cors import CORS
 from flask import Flask, render_template, request, jsonify
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from ranking import ir_rankings
+from trie_search.process_query import Query_Completion
 
 app = Flask(__name__)
 app.jinja_env.variable_start_string = '[[['
@@ -12,6 +13,9 @@ app.jinja_env.variable_end_string = ']]]'
 CORS().init_app(app)
 
 web_url = 'https://en.wikipedia.org/'
+
+title_path  = "titles.trie"
+qc = Query_Completion(title_path, title_path)
 
 
 @app.route('/')
@@ -97,7 +101,6 @@ def search_results(query_str):
         infos_list = infos_list[(page_id * 10 - 10): (page_id * 10)]
         return jsonify({'infos_list': infos_list, 'len_number': len_number})
 
-
 @app.route('/input_value', methods=['POST'])
 def input_value():
     """
@@ -114,6 +117,8 @@ def input_value():
         # db_session.commit()
         # db_session.close()
         infos_list = []
+        # print(qc.trie_page_title.trie.suffixes('a'))
+        infos_list = qc.get_info_list(input_value)
         # 不区分大小写，建议模糊搜索直接按照以下逻辑开发
         # e.g. 假如输入框输入ja，则直接从整个wikipedia的词条数据库中获得所有带ja的词条，并选取前10个显示在模糊提示框内
         # for i in infos:
@@ -122,7 +127,6 @@ def input_value():
                 # infos_list.append({'title': i.title, 'introduce': i.introduce})
         infos_list = infos_list[0:10]
         return jsonify(infos_list)
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=12001, debug=app.config["DEBUG"], threaded=False)
