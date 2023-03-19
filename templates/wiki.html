@@ -24,24 +24,26 @@
 
 
 <div style="width: 1000px;margin: 0 auto;padding: 20px 0 0 0">
-    <div class="container">
-        <center>
-            <div class="page"><a style="font-size: 35px">[[[ title ]]]</a></div>
-        </center>
+    <center>
+        <div><a style="font-size: 35px">[[[ title ]]]</a></div>
+    </center>
 
-        <div style="padding: 20px 0 0 0 "></div>
-        <center>
-            <div>More in Wikipedia Webpage: <a href="[[[ web_url ]]]wiki/[[[ title ]]]">[[[ web_url ]]]wiki/[[[ title ]]]</a></div>
-        <!--        <div><a href="{{ web_url }}">{{ web_url }}</a></div>-->
-        </center>
+    <div style="padding: 20px 0 0 0 "></div>
+    <center>
+        <div>More in Wikipedia Webpage: <a href="[[[ web_url ]]]wiki/[[[ title ]]]">[[[ web_url ]]]wiki/[[[ title ]]]</a></div>
+<!--        <div><a href="{{ web_url }}">{{ web_url }}</a></div>-->
+    </center>
 
-        <hr>
-    <!--    <pre style="white-space: pre-wrap; /* css-3 */-->
-<!--white-space: -moz-pre-wrap; /* Mozilla, since 1999 */-->
-<!--white-space: -o-pre-wrap; /* Opera 7 */-->
-<!--word-wrap: break-word; /* Internet Explorer 5.5+ */">[[[ contents ]]]</pre>-->
+    <hr>
+<div style="padding: 30px 0 0 0 "></div>
 
-    </div>
+
+    <pre style="white-space: pre-wrap; /* css-3 */
+white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+white-space: -o-pre-wrap; /* Opera 7 */
+word-wrap: break-word; /* Internet Explorer 5.5+ */">{% for i in infos_list %}{% if i['code'] == 'b0' %}<h4>[[[ i['b0'] ]]]</h4>{% endif %}{% if i['code'] == 'b1' %}<h3>[[[ i['b1'] ]]]</h3>{% endif %}{% if i['code'] == 'b2' %}<h1>[[[ i['b2'] ]]]</h1><hr>{% endif %}{% if i['code'] == 'b' %}[[[ i['info'] ]]]{% endif %}{% endfor %}</pre>
+
+
 </div>
 
 

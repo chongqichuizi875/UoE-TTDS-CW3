@@ -2,12 +2,10 @@ import sys
 from pathlib import Path
 import math
 import datetime
-import Scheduler
 from collections import ChainMap
 from multiprocessing import Pool
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
+from ranking import Scheduler
 from db import MongoDB
 from data_collection.preprocessing import Preprocessing
 
@@ -262,7 +260,8 @@ def get_bm25_results(query_text):
 def process_retrieved_doc_content(doc_id):
     page_contents = mongoDB.get_page_by_page_id(doc_id)['text']
     contents_list = str(page_contents).split('\n')
-    
+    return contents_list
+
 
 
 if __name__ == '__main__':
