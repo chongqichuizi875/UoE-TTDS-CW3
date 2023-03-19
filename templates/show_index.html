@@ -154,7 +154,15 @@
                 })
 
         },
-
+        created(){
+            var _self = this;
+            document.onkeydown = function() {
+                var key = window.event.keyCode;
+                if (key === 13){
+                    _self.input()
+                }
+            }
+        },
 
         methods: {
             tiaozhuan(doc_id, title){
