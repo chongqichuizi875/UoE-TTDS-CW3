@@ -1,6 +1,8 @@
 import nltk
 from nltk.corpus import wordnet as wn
+from data_collection.preprocessing import Preprocessing
 from nltk import pos_tag
+from nltk.corpus import stopwords
 import re
 
 class QueryExpansion():
@@ -11,6 +13,8 @@ class QueryExpansion():
             'RB': [ wn.ADV ],
             'VB': [ wn.VERB ]
         }
+        self.stopwords = set(stopwords.words('english'))
+        self.preprocessor = Preprocessing()
     
     def download_nltk_pakages(self):
         nltk.download('wordnet')
@@ -18,6 +22,13 @@ class QueryExpansion():
         nltk.download('averaged_perceptron_tagger')
         nltk.download('omw-1.4')
     
+    def remove_stopwords(self, tokens):
+        results = []
+        for token in tokens:
+            if token[0] not in self.stopwords:
+                results.append(token)
+        return results
+
     def pos_tag_converter(self, nltk_pos_tag):
         root_tag = nltk_pos_tag[0:2]
         try:
@@ -70,8 +81,10 @@ class QueryExpansion():
             new_tokens[mod_key] = tokens[key]
         return new_tokens
     
-    def generate_tokens(self, tokens):
+    def generate_tokens(self, query):
+        tokens = self.preprocessor.wiki_tokenize(query,stemming=False,stop=False)
         tokens_tag = pos_tag(tokens)
+        tokens_tag = self.remove_stopwords(tokens_tag)
         synsets = self.get_synsets(tokens_tag)
         synonyms = self.get_tokens_from_synsets(synsets)
         synonyms = self.underscore_replacer(synonyms)
@@ -79,7 +92,9 @@ class QueryExpansion():
         hypernyms = self.get_tokens_from_hypernyms(hypernyms)
         hypernyms = self.underscore_replacer(hypernyms)
         new_tokens = {**synonyms, **hypernyms}
-        return new_tokens
+        print(new_tokens)
+        new_tokens = self.preprocessor.stemming_tokens(list(new_tokens.keys()))
+        return list(new_tokens)
 
     
     
