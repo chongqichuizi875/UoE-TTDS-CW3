@@ -73,7 +73,7 @@
     </div>
 
 
-    <div style="padding: 50px 50px 50px 100px">
+    <div style="padding: 50px 50px 50px 100px" v-if="showResearchResults">
 
         <div v-for="i in infos_list">
 
@@ -88,6 +88,12 @@
         </div>
 
 
+    </div>
+
+    <div style="padding: 50px 50px 50px 100px" v-else>
+        <div style="font-size: 40px;font-weight: bold">
+            No search results about the query!
+        </div>
     </div>
 
 
@@ -123,7 +129,12 @@
                 local_url:'',
 
 
+            }
+        },
 
+        computed: {
+            showResearchResults() {
+                return this.infos_list.length > 0;
             }
         },
 
