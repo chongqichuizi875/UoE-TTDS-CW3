@@ -101,13 +101,15 @@ def search_results(query_str):
     if request.method == 'POST':
         query_str = query_str.replace('%23', '#')
         page_id = int(request.get_json()['id'])
+        print(query_str)
         # 数据库操作
         infos_list = query_parse.run_search(query=query_str, db=mongoDB)
 
         len_number = int(len(infos_list))
         # 第1页就是放搜索结果[0:10], 第2页[11:20]，以此类推
         infos_list = infos_list[(page_id * 10 - 10): (page_id * 10)]
-        return jsonify({'input_value': query_str, 'infos_list': infos_list, 'len_number': len_number})
+        return jsonify({'input_value': query_str, 'infos_list': infos_list,
+                        'len_number': len_number, 'is_empty': len_number > 0})
 
 @app.route('/input_value', methods=['POST'])
 def input_value():
