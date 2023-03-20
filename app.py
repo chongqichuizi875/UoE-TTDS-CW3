@@ -1,18 +1,24 @@
 import sys
+import re
 from pathlib import Path
-from sqlalchemy_config.sqlalchemy_config import db_session, Infos
 from flask_cors import CORS
 from flask import Flask, render_template, request, jsonify
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from search_func import query_parse
 from ranking import ir_rankings
+from db.MongoDB import MongoDB
+from trie_search.process_query import Query_Completion
 
 app = Flask(__name__)
 app.jinja_env.variable_start_string = '[[['
 app.jinja_env.variable_end_string = ']]]'
 CORS().init_app(app)
+mongoDB = MongoDB()
 
 web_url = 'https://en.wikipedia.org/'
+
+title_path  = "titles.trie"
+qc = Query_Completion(title_path, title_path)
 
 
 @app.route('/')
@@ -41,15 +47,19 @@ def wiki_introduce(doc_id, title):
         doc_id = str(doc_id)
         title = str(title)
         # 数据库操作，获取数据库中匹配的词条
-        contents = ir_rankings.process_retrieved_doc_content(doc_id=doc_id)
-        contents_list = str(contents).split('\n')
+        # contents = ir_rankings.process_retrieved_doc_content(doc_id=doc_id)
+        contents_list = ir_rankings.process_retrieved_doc_content(doc_id=doc_id)
         infos_list = []
         for i in contents_list:
-            if '===' in i:
+            if re.match('^====.*====$', i):
+                b0 = i.replace('====', '')
+                infos_list.append({'b0': b0, 'code': 'b0'})
+                continue
+            if re.match('^===.*===$', i):
                 b1 = i.replace('===', '')
                 infos_list.append({'b1': b1, 'code': 'b1'})
                 continue
-            if '==' in i:
+            if re.match('^==.*==$', i):
                 b2 = i.replace('==', '')
                 infos_list.append({'b2': b2, 'code': 'b2'})
                 continue
@@ -62,7 +72,6 @@ def wiki_introduce(doc_id, title):
         # query_title = str(infos.title)  # 词条title
         # query_introduce = str(infos.introduce)  # 词条介绍
         return render_template('wiki.html', title=title, web_url=web_url, infos_list=infos_list)
-
 
 # 搜索结果界面
 @app.route('/search/<query_str>', methods=['GET', 'POST'])
@@ -88,13 +97,12 @@ def search_results(query_str):
         title = str(query_str)
         page_id = int(request.get_json()['id'])
         # 数据库操作
-        infos_list = ir_rankings.get_bm25_results(query_text=query_str)
+        infos_list = query_parse.run_search(query=query_str, db=mongoDB)
 
         len_number = int(len(infos_list))
         # 第1页就是放搜索结果[0:10], 第2页[11:20]，以此类推
         infos_list = infos_list[(page_id * 10 - 10): (page_id * 10)]
-        return jsonify({'infos_list': infos_list, 'len_number': len_number})
-
+        return jsonify({'input_value': query_str, 'infos_list': infos_list, 'len_number': len_number})
 
 @app.route('/input_value', methods=['POST'])
 def input_value():
@@ -108,19 +116,20 @@ def input_value():
     """
     if request.method == 'POST':
         input_value = str(request.get_json()['input_value'])
-        infos = db_session.query(Infos).filter().all()
-        db_session.commit()
-        db_session.close()
+        # infos = db_session.query(Infos).filter().all()
+        # db_session.commit()
+        # db_session.close()
         infos_list = []
+        # print(qc.trie_page_title.trie.suffixes('a'))
+        infos_list = qc.get_info_list(input_value)
         # 不区分大小写，建议模糊搜索直接按照以下逻辑开发
         # e.g. 假如输入框输入ja，则直接从整个wikipedia的词条数据库中获得所有带ja的词条，并选取前10个显示在模糊提示框内
-        for i in infos:
-            if input_value.lower() in i.title.lower() or input_value.upper() in i.title.upper():
-                infos_list.append({'title': i.title})
+        # for i in infos:
+        #     if input_value.lower() in i.title.lower() or input_value.upper() in i.title.upper():
+        #         infos_list.append({'title': i.title})
                 # infos_list.append({'title': i.title, 'introduce': i.introduce})
         infos_list = infos_list[0:10]
         return jsonify(infos_list)
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=12001, debug=app.config["DEBUG"], threaded=False)

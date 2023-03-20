@@ -31,7 +31,19 @@
                         placement="left">
                 <input v-model="input_value" placeholder="Enter Your Query" type="text"
                        style="height: 50px;width: 400px;outline: none;vertical-align: top;border:none;background-color: #f1f3f4">
-                <div style="width: 250px;" slot="content">Input Query Format<br>Boolean Search: Term 1 AND Term2<br>Proximity Search: #15(Term1, Term2)</div>
+                <div style="width: 300px;" slot="content">
+                    Input Format
+                    <br>1. Query Format
+                    <br>(1) Word: No Quotation Mark, e.g. computer
+                    <br>(2) Phrase: Need Quotation Mark, e.g. "computer science"
+                    <br>2. Search Format
+                    <br>(1) Fuzzy Search: No Bracket, e.g. computer, "computer science"
+                    <br>(2) Exact Search: Need Brackets, e.g. [computer], ["computer science"]
+                    <br>&nbsp;&nbsp;(i) Proximity Search: [#15(Term1, Term2)], <br>&nbsp;&nbsp;No Bracket means fuzzy search
+                    <br>&nbsp;&nbsp;(ii) Boolean Search: e.g. [computer AND english], <br>&nbsp;&nbsp;["computer science" OR teacher],
+                    <br>&nbsp;&nbsp;[#20(Term1, Term2) AND NOT "computer science"], <br>&nbsp;&nbsp;No Bracket means fuzzy search
+                    <br>&nbsp;&nbsp;Boolean Search can be combined with <br>&nbsp;&nbsp;word, phrase, proximity arbitrarily
+                </div>
             </el-tooltip>
             <button v-on:click="input" type="button"
                     style="background-color: #56b9f4;width: 180px;height: 52px;vertical-align: top;border-style:none;font-size: 18px;font-weight: 700">
@@ -135,6 +147,7 @@
 
                     this.infos_list = res.data['infos_list']
                     this.len_number = res.data['len_number']
+                    this.input_value = res.data['input_value']
                 })
                 .catch(err => {
                     console.log(err)
@@ -142,7 +155,15 @@
                 })
 
         },
-
+        created(){
+            var _self = this;
+            document.onkeydown = function() {
+                var key = window.event.keyCode;
+                if (key === 13){
+                    _self.input()
+                }
+            }
+        },
 
         methods: {
             tiaozhuan(doc_id, title){
