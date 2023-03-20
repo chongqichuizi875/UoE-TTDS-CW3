@@ -336,12 +336,8 @@ class QuerySelection(object):
 @timeit
 def run_search(query, db):
     dbsearch = DBSearch(inverted_index_db=db)
-    query_selection = QuerySelection(query, dbsearch)()
+    page_ids = QuerySelection(query, dbsearch)()
     infos_list = []
-    page_ids = []
-    for result in query_selection:
-        page_ids.append(result[0])
-    print(page_ids)
     pages_returned = db.get_pages_by_list_of_ids(ids=page_ids)
     for page in pages_returned:
         infos_list.append({'doc_id': page['_id'], 'title': page['title'], 'introduce': page['text'][0: 600] + '...'})
@@ -350,10 +346,10 @@ def run_search(query, db):
 
 if __name__ == '__main__':
     # query = '["indigenous peoples" AND Christopher AND islands AND "Japanese forces"]'  # 1000232
-    query = '["indigenous peoples" AND Christopher]'
+    # query = '["indigenous peoples" AND Christopher]'
     # query = 'python step by step instruction'
-    # query = 'sunday'
+    query = '["computer science"]'
     mongodb = MongoDB()
-    _ = run_search(query, mongodb)
-    # print(run_search(query, mongodb))
+    # _ = run_search(query, mongodb)
+    print(run_search(query, mongodb))
 
