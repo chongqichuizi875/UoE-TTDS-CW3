@@ -10,7 +10,7 @@ from ranking import ir_rankings
 from db.MongoDB import MongoDB
 from trie_search.process_query import Query_Completion
 from trie_search.trie_tree import Trie_Log, Trie_Hit
-
+import urllib.parse
 app = Flask(__name__)
 app.jinja_env.variable_start_string = '[[['
 app.jinja_env.variable_end_string = ']]]'
@@ -92,6 +92,7 @@ def search_results(query_str):
         字典里每一项按顺序分别为词条title和词条introduce
     (2) len_number: 搜索结果的数量
     """
+    query_str = urllib.parse.unquote(query_str)
     # GET操作，则显示搜索结果界面
     if request.method == 'GET':
         return render_template('show_index.html')
