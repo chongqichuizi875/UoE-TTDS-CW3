@@ -73,7 +73,7 @@
     </div>
 
 
-    <div style="padding: 50px 50px 50px 100px" v-if="showResearchResults">
+    <template style="padding: 50px 50px 50px 100px" v-if="is_empty">
 
         <div v-for="i in infos_list">
 
@@ -86,14 +86,14 @@
             <br>
 
         </div>
-    </div>
+    </template>
 
 
-    <div style="padding: 50px 50px 50px 100px" v-else>
+    <template style="padding: 50px 50px 50px 100px" v-else>
         <div style="font-size: 40px;font-weight: bold">
             No search results about the query!
         </div>
-    </div>
+    </template>
 
 
     <div style="padding: 20px 0 20px 50px;position:fixed;
@@ -131,12 +131,6 @@
             }
         },
 
-        computed: {
-            showResearchResults() {
-                return this.infos_list.length > 0;
-            }
-        },
-
         mounted() {
 
             var cur = window.document.location.href;
@@ -160,6 +154,7 @@
                     this.infos_list = res.data['infos_list']
                     this.len_number = res.data['len_number']
                     this.input_value = res.data['input_value']
+                    this.is_empty = res.data['is_empty']
                 })
                 .catch(err => {
                     console.log(err)
