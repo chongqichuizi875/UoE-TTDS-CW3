@@ -33,16 +33,16 @@
                        style="height: 50px;width: 400px;outline: none;vertical-align: top;border:none;background-color: #f1f3f4">
                 <div style="width: 300px;" slot="content">
                     Input Format
-                    <br>1. Query Format
-                    <br>(1) Word: No Quotation Mark, e.g. computer
-                    <br>(2) Phrase: Need Quotation Mark, e.g. "computer science"
-                    <br>2. Search Format
-                    <br>(1) Fuzzy Search: No Bracket, e.g. computer, "computer science"
-                    <br>(2) Exact Search: Need Brackets, e.g. [computer], ["computer science"]
-                    <br>&nbsp;&nbsp;(i) Proximity Search: [#15(Term1, Term2)], <br>&nbsp;&nbsp;No Bracket means fuzzy search
-                    <br>&nbsp;&nbsp;(ii) Boolean Search: e.g. [computer AND english], <br>&nbsp;&nbsp;["computer science" OR teacher],
-                    <br>&nbsp;&nbsp;[#20(Term1, Term2) AND NOT "computer science"], <br>&nbsp;&nbsp;No Bracket means fuzzy search
-                    <br>&nbsp;&nbsp;Boolean Search can be combined with <br>&nbsp;&nbsp;word, phrase, proximity arbitrarily
+                    <br><br>1. Query Format
+                    <br><br>(1) Word: No Quotation Mark, e.g. computer
+                    <br><br>(2) Phrase: Need Quotation Mark, e.g. "travel to China"
+                    <br><br>2. Search Format
+                    <br><br>(1) Fuzzy Search: No Bracket, e.g. computer, "travel to China"
+                    <br><br>(2) Exact Search: Need Brackets, e.g. [computer], ["travel"]
+                    <br><br>&nbsp;&nbsp;(i) Proximity Search: [#15(Term1, Term2)], <br>&nbsp;&nbsp;No Bracket means fuzzy search
+                    <br><br>&nbsp;&nbsp;(ii) Boolean Search: e.g. [computer AND english], <br>&nbsp;&nbsp;["computer science" OR teacher],
+                    <br><br>&nbsp;&nbsp;[#20(Term1, Term2) AND NOT "computer science"], <br>&nbsp;&nbsp;No Bracket means fuzzy search
+                    <br><br>&nbsp;&nbsp;Boolean Search can be combined with <br>&nbsp;&nbsp;word, phrase, proximity arbitrarily
                 </div>
             </el-tooltip>
             <button v-on:click="input" type="button"
