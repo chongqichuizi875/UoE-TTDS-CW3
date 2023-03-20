@@ -66,7 +66,7 @@
 
         <div v-if="infos">
             <div style="font-size: 15px;background-color: white;width: 404px">
-                <div v-for="i in infos" style="margin: 0 2px 10px 10px;width: 400px;height: 20px;">
+                <div v-for="i in infos" style="margin: 0 2px 10px 10px;width: auto;height: auto;">
                     <a v-on:click="click_change([[ i['title'] ]])"
                        style="width: 400px ;text-decoration: none;color: black ">
                         [[ i['title'] ]] </a>
@@ -105,7 +105,8 @@
                 this.input_value = text[0][0]
             },
             input() {
-                window.location.href = '/search/' + this.input_value
+                var query_str = this.input_value.replace(/\#/g, "%23");
+                window.location.href = '/search/' + query_str
             },
 
         },

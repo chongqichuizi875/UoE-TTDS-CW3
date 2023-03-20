@@ -11,7 +11,7 @@ from functools import wraps
 from scipy.sparse import lil_matrix
 
 # from ranking.ir_rankings_2 import calculate_sorted_bm25_score_of_query
-VERBOSE = False
+VERBOSE = True
 # nltk.download('stopwords')
 # nltk.download('punkt')
 stop_words = set(stopwords.words('english'))
@@ -38,7 +38,7 @@ def preprocessing(text):
     remove the stopping words of English, stemming words,
     and return a list of tokens after processing.
     """
-    return Preprocessing().wiki_tokenize(text)
+    return Preprocessing().wiki_tokenize(text, stop=False)
 
 
 class DBSearch(object):
@@ -175,7 +175,7 @@ class DBSearch(object):
                 freq_dict = dict(sorted(freq_dict.items(), key=lambda x: x[1], reverse=True)[:max_chunk_size])
             return [freq_dict, page_count]
         except:
-            return []
+            return [{}, 0]
 
     def token_to_index(self, tokens: list):
         for index, token in enumerate(list(set(tokens))):
@@ -200,9 +200,12 @@ class DBSearch(object):
                   page_id4: weight4}
         """
         tokens = preprocessing(query)
+        print(f"preprocessed tokens {tokens}")
         # tokens = query.split()
+        if len(tokens) == 0:
+            tokens = query.split()
+        print(f"tokens {tokens}")
         score_dict = {}
-
         # solution 2, use sparse matrix
         self.token_to_index(tokens)
         freq_count_list = np.array([])
@@ -211,7 +214,7 @@ class DBSearch(object):
                 freq_count_list = np.append(freq_count_list, self.cached_token_freq[token]).reshape(-1, 2)
             else:
                 freq_count_list = np.append(freq_count_list, self.calculate_freq(token)).reshape(-1, 2)
-        print(freq_count_list)
+        # print(freq_count_list)
         # freq_count_list = np.array([self.calculate_freq(token) for token in self.token2index.keys()])
         freq_dict_list = freq_count_list[:, 0]
         page_count_list = freq_count_list[:, 1]
@@ -352,6 +355,9 @@ def run_search(query, db, max_index=30):
     dbsearch = DBSearch(inverted_index_db=db)
     search_result = QuerySelection(query, dbsearch, max_index=max_index)()
     page_ids = []
+    if len(search_result) == 0:
+        return []
+    print("==========================")
     if len(search_result[0]) == 2:
         for page in search_result:
             page_ids.append(page[0])
@@ -368,8 +374,9 @@ if __name__ == '__main__':
     # query = '["indigenous peoples" AND Christopher AND islands AND "Japanese forces"]'  # 1000232
     # query = '["indigenous peoples" AND Christopher]'
     # query = 'python step by step instruction'
-    query = '"computer science"'
+    # query = '"computer science"'
     # query = 'I like China, give me a guide to travel to China'
+    query = '[#3(Christopher, shit)]'
     mongodb = MongoDB()
     # _ = run_search(query, mongodb, max_index=30)
     print(run_search(query, mongodb, max_index=30))
