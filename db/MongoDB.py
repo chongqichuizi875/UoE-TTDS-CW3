@@ -19,6 +19,7 @@ class MongoDB(DBInterface):
         self.wiki = client.subwiki
         self.pages = self.wiki.pages
         self.inverted_index = self.wiki.inverted_index
+        self.tfs = self.wiki.tfs
         self.inverted_index.create_index("token")
         self.avg_page_len = self.get_avg_page_len()
         self.total_page_count = self.get_page_count()
@@ -71,7 +72,7 @@ class MongoDB(DBInterface):
         return self.pages.find({},{"_id":0, "title":1})
     
     def get_token_freqs(self, tf_lower_bound=5):
-        self.wiki.tfs.insert_many(self.inverted_index.aggregate([
+        self.tfs.insert_many(self.inverted_index.aggregate([
             {"$unwind": "$pages"},
             {'$match': {'pages.tf': {'$gt':tf_lower_bound}}},
             {"$project": {
@@ -88,3 +89,5 @@ class MongoDB(DBInterface):
             {"$sort": {'page_count':-1}}
 
         ]))
+    def create_token_freqs_dict(self):
+        return {doc['_id']: [{x['pageid']:x['tf'] for x in doc['tfs'] }, doc['page_count']] for doc in self.tfs.find()}
