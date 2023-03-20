@@ -7,6 +7,7 @@ from nltk.corpus import stopwords
 from db.MongoDB import MongoDB
 import sys
 from data_collection.preprocessing import Preprocessing
+from qe.QueryExpansion import QueryExpansion
 from functools import wraps
 from scipy.sparse import lil_matrix
 
@@ -199,7 +200,9 @@ class DBSearch(object):
                   page_id3: weight3
                   page_id4: weight4}
         """
+        expansion = QueryExpansion().generate_tokens(query)
         tokens = preprocessing(query)
+        tokens = tokens+expansion
         # tokens = query.split()
         score_dict = {}
 
