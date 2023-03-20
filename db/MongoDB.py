@@ -70,12 +70,21 @@ class MongoDB(DBInterface):
     def get_page_titles(self):
         return self.pages.find({},{"_id":0, "title":1})
     
-    def get_token_freqs(self):
-        return self.inverted_index.aggregate([
+    def get_token_freqs(self, tf_lower_bound=5):
+        self.wiki.tfs.insert_many(self.inverted_index.aggregate([
             {"$unwind": "$pages"},
+            {'$match': {'pages.tf': {'$gt':tf_lower_bound}}},
+            {"$project": {
+                "token": "$token",
+                "tfs.pageid": "$pages._id",
+                "tfs.tf": "$pages.tf",
+                "page_count": "$page_count"
+            }},
             {'$group': {
                 "_id": "$token",
-                "freq": {"$sum":"$pages.tf"}
+                "page_count" :{"$first":"$page_count"},
+                "tfs": {"$push": "$tfs"}
             }},
-            {"$sort": {'freq':-1}}
-        ])
+            {"$sort": {'page_count':-1}}
+
+        ]))
