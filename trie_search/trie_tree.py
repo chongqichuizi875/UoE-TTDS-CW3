@@ -90,11 +90,8 @@ class Trie_Log(Trie_Tree):
     def __init__(self, path=None) -> None:
         super().__init__(path)
     def hit(self, key):
-        self.trie.update([(key, int(time.time()))])
+        self.update(key, int(time.time()))
         self.save()
 
-    def load(self, path=None):
-        if not path:
-            path = self.path
     def init_trie(self):
         self.trie = datrie.BaseTrie(string.ascii_letters+string.digits+string.punctuation+string.whitespace)

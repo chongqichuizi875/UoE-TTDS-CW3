@@ -11,8 +11,7 @@ class Wiki_Loader:
         # self.token_dictionary = Dictionary.load_from_text(dict_path)
         # self.wiki = WikiCorpus(wiki_path, dictionary=self.token_dictionary)
         # self.wiki = MyWikiCorpus(wiki_path, dictionary=self.token_dictionary)
-        # client = MongoClient("mongodb://192.168.224.1:27017/")
-        client = MongoClient("mongodb://localhost:27017/")
+        client = MongoClient("mongodb://192.168.224.1:27017/")
         db = client.subwiki
         self.pages = db.pages
         self.inverted_index = db.inverted_index

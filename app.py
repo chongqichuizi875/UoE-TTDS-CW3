@@ -8,6 +8,7 @@ from search_func import query_parse
 from ranking import ir_rankings
 from db.MongoDB import MongoDB
 from trie_search.process_query import Query_Completion
+from trie_search.trie_tree import Trie_Log, Trie_Hit
 
 app = Flask(__name__)
 app.jinja_env.variable_start_string = '[[['
@@ -18,8 +19,10 @@ mongoDB = MongoDB()
 web_url = 'https://en.wikipedia.org/'
 
 title_path  = "titles.trie"
-qc = Query_Completion(title_path, title_path)
-
+log_path = 'log.trie'
+tl = Trie_Log(log_path)
+th = Trie_Hit(title_path)
+qc = Query_Completion(tl, th)
 
 @app.route('/')
 def index():
@@ -28,7 +31,6 @@ def index():
     """
     # 返回前端初始界面index.html
     return render_template('index.html')
-
 
 @app.route('/wiki/<doc_id>/<title>', methods=['GET', 'POST'])
 def wiki_introduce(doc_id, title):
@@ -95,6 +97,9 @@ def search_results(query_str):
     # POST操作，将搜索结果内容显示在该界面上
     if request.method == 'POST':
         title = str(query_str)
+        # print(title, query_str, type(title), type(query_str))
+        tl.hit(query_str)
+        print("hit:", query_str)
         page_id = int(request.get_json()['id'])
         # 数据库操作
         infos_list = query_parse.run_search(query=query_str, db=mongoDB)

@@ -7,13 +7,13 @@ MAX_TITLE_RESULT_N = 3
 MAX_LOG_RESULT_N = 2
 
 class Query_Completion():
-    def __init__(self, log_path, hit_path) -> None:
+    def __init__(self, trie_query_log, trie_page_title) -> None:
         # history query log
-        self.trie_query_log = Trie_Log(log_path)
-        self.trie_page_title = Trie_Hit(hit_path)
+        self.trie_query_log = trie_query_log
+        self.trie_page_title = trie_page_title
         self.suffix_pattern = re.compile(r"""[\w\s]+$""")
     def get_info_list(self, query):
-        results = self.parse_query(query)
+        results = self.parse_query(query.lower())
         return [{"title": s} for i, s in enumerate(results)]
 
     def parse_query(self, query):
@@ -23,6 +23,7 @@ class Query_Completion():
         results = []
         query_log = self.trie_query_log.search(query)
         if query_log:
+            print('query log', query_log)
             if len(query_log) > MAX_LOG_RESULT_N:
                 results.extend(query_log[:MAX_LOG_RESULT_N])
             else:
@@ -44,7 +45,7 @@ class Query_Completion():
                 if tmp_str:
                     titles = self.trie_page_title.search(tmp_str)
                     if titles:
-                        results.extend([prefix+' '.join(pre_words+words[:i]+['\\'+t+ '\\']) for t in titles])
+                        results.extend([prefix+' '.join(pre_words+words[:i]+[t]) for t in titles])
                     if len(results) >= MAX_TITLE_RESULT_N:
                         results = results[:MAX_TITLE_RESULT_N] 
                         break
