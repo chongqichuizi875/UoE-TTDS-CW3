@@ -11,7 +11,7 @@ from functools import wraps
 from scipy.sparse import lil_matrix, csr_matrix
 
 # from ranking.ir_rankings_2 import calculate_sorted_bm25_score_of_query
-VERBOSE = True
+VERBOSE = False
 # nltk.download('stopwords')
 # nltk.download('punkt')
 stop_words = set(stopwords.words('english'))
@@ -336,7 +336,11 @@ class QuerySelection(object):
 @timeit
 def run_search(query, db):
     dbsearch = DBSearch(inverted_index_db=db)
-    page_ids = QuerySelection(query, dbsearch)()
+    search_result = QuerySelection(query, dbsearch)()
+    page_ids = []
+    if len(search_result[0]) == 2:
+        for page in search_result:
+            page_ids.append(page[0])
     infos_list = []
     pages_returned = db.get_pages_by_list_of_ids(ids=page_ids)
     for page in pages_returned:
@@ -347,9 +351,9 @@ def run_search(query, db):
 if __name__ == '__main__':
     # query = '["indigenous peoples" AND Christopher AND islands AND "Japanese forces"]'  # 1000232
     # query = '["indigenous peoples" AND Christopher]'
-    # query = 'python step by step instruction'
-    query = '["computer science"]'
+    query = 'python step by step instruction'
+    # query = '["computer science"]'
     mongodb = MongoDB()
-    # _ = run_search(query, mongodb)
-    print(run_search(query, mongodb))
+    _ = run_search(query, mongodb)
+    # print(run_search(query, mongodb))
 
