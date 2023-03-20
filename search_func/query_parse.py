@@ -27,7 +27,7 @@ def timeit(func):
         end_time = time.perf_counter()
         total_time = end_time - start_time
         # sys.stdout.write(f'Function {func.__name__}{args} {kwargs} \nTook {total_time:.4f} seconds\n')
-        sys.stdout.write(f"Func {func.__name__} took {total_time:.4f}s\n")
+        sys.stdout.write(f"Func {func.__name__}{args} took {total_time:.4f}s\n")
         return result
 
     return timeit_wrapper
@@ -49,6 +49,7 @@ class DBSearch(object):
     """
 
     def __init__(self, inverted_index_db: MongoDB, verbose=VERBOSE) -> None:
+        self.cached_token_freq = {}
         self.index2page = {}
         self.page2index = {}
         self.index2token = {}
@@ -156,6 +157,7 @@ class DBSearch(object):
         return result_list
 
     @cached(cache=LRUCache(maxsize=32))
+    @timeit
     def calculate_freq(self, token, minimal_freq=5, max_chunk_size=500):
 
         try:
@@ -202,15 +204,22 @@ class DBSearch(object):
         score_dict = {}
 
         # solution 2, use sparse matrix
-
         self.token_to_index(tokens)
-        freq_count_list = np.array([self.calculate_freq(token) for token in self.token2index.keys()])
+        freq_count_list = np.array([])
+        for token in self.token2index.keys():
+            if token in self.cached_token_freq.keys():
+                freq_count_list = np.append(freq_count_list, self.cached_token_freq[token]).reshape(-1, 2)
+            else:
+                freq_count_list = np.append(freq_count_list, self.calculate_freq(token)).reshape(-1, 2)
+        print(freq_count_list)
+        # freq_count_list = np.array([self.calculate_freq(token) for token in self.token2index.keys()])
         freq_dict_list = freq_count_list[:, 0]
         page_count_list = freq_count_list[:, 1]
         idf_list = np.log10((self.total_page_count + 0.5) / (page_count_list + 0.5).astype(float))
         all_page_id_keys = list(set().union(*(d.keys() for d in freq_dict_list)))
         self.page_to_index(all_page_id_keys)
         sparse_matrix = lil_matrix((len(all_page_id_keys), (len(self.token2index))))
+
         for i, page_id in self.index2page.items():
             page_len = self.inverted_index_db.get_page_by_page_id(page_id)['page_len']
             k = k1 * (1 - b + (b * (page_len / self.avg_page_len)))
@@ -358,8 +367,11 @@ def run_search(query, db, max_index=30):
 if __name__ == '__main__':
     # query = '["indigenous peoples" AND Christopher AND islands AND "Japanese forces"]'  # 1000232
     # query = '["indigenous peoples" AND Christopher]'
-    query = 'python step by step instruction'
-    # query = '["computer science"]'
+    # query = 'python step by step instruction'
+    query = '"computer science"'
+    # query = 'I like China, give me a guide to travel to China'
     mongodb = MongoDB()
-    _ = run_search(query, mongodb, max_index=30)
-    # print(run_search(query, mongodb))
+    # _ = run_search(query, mongodb, max_index=30)
+    print(run_search(query, mongodb, max_index=30))
+    # tokens = mongodb.get_token_freqs()
+    # print(tokens)

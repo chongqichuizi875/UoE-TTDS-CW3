@@ -14,8 +14,8 @@ class MongoDB(DBInterface):
         # client = MongoClient("mongodb://192.168.224.1:27017/")
         # print('initialize MongoDB......')
         # print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
-        # client = MongoClient("mongodb://127.0.0.1:27017/")
-        client = MongoClient("mongodb://192.168.224.1:27017/")
+        client = MongoClient("mongodb://127.0.0.1:27017/")
+        # client = MongoClient("mongodb://192.168.224.1:27017/")
         self.wiki = client.subwiki
         self.pages = self.wiki.pages
         self.inverted_index = self.wiki.inverted_index
@@ -75,7 +75,7 @@ class MongoDB(DBInterface):
             {"$unwind": "$pages"},
             {'$group': {
                 "_id": "$token",
-                "freq": {"$sum":"$pages.tf"}
+                "freq": [{"$sum":"$pages.tf"}, {"$sum":"$page_count"}]
             }},
             {"$sort": {'freq':-1}}
         ])
