@@ -14,7 +14,7 @@ class Preprocessing():
             if token_min_len <= len(token) <= token_max_len and not token.startswith('_'))
         else:
             gen = (token for token in tokenize(content, lower=lower, errors='ignore')
-            if  not token.startswith('_'))
+            if not token.startswith('_'))
 
         if stop:
             gen = self.remove_stop_words(gen)

@@ -29,8 +29,9 @@
 
             <el-tooltip class="item" effect="light"
                         placement="left">
-                <input v-model="input_value" placeholder="Enter Your Query" type="text"
+                <input v-model="input_value" placeholder="Enter Your Query" type="text" v-on:mousedown="mouse_down()" v-on:mouseleave="mouse_leave()"
                        style="height: 50px;width: 400px;outline: none;vertical-align: top;border:none;background-color: #f1f3f4">
+
                 <div style="width: 300px;" slot="content">
                     Input Format
                     <br><br>1. Query Format
@@ -106,6 +107,7 @@
     var app = new Vue({
         el: '#app',
         delimiters: ["[[", "]]"],
+        is_watch: false,
         data() {
             return {
                 input_value: '',
@@ -173,7 +175,12 @@
 
                 this.input_value = text[0][0]
             },
-
+            mouse_down() {
+                this.is_watch=true
+            },
+            mouse_leave() {
+                this.is_watch=false
+            },
 
             handleCurrentChange(id) {
                 var url = window.location.pathname
@@ -193,7 +200,8 @@
             },
 
             input() {
-                window.location.href = '/search/' + this.input_value
+                var query_str = this.input_value.replace(/\#/g, "%23");
+                window.location.href = '/search/' + query_str
             },
 
 
@@ -201,7 +209,8 @@
 
         watch: {
             input_value() {
-                if (this.input_value !== '') {
+                if (this.is_watch){
+                    if (this.input_value !== '') {
                     axios.post('/input_value', {'input_value': this.input_value})
                         .then(res => {
                             this.infos = res.data
@@ -210,12 +219,10 @@
                             console.log(err)
                             alert('Network transmission failed')
                         })
-
-                } else {
-                    this.infos = ''
+                    } else {
+                        this.infos = ''
+                    }
                 }
-
-
             }
         },
 

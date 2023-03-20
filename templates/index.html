@@ -105,7 +105,8 @@
                 this.input_value = text[0][0]
             },
             input() {
-                window.location.href = '/search/' + this.input_value
+                var query_str = this.input_value.replace(/\#/g, "%23");
+                window.location.href = '/search/' + query_str
             },
 
         },

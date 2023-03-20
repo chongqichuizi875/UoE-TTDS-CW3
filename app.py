@@ -1,5 +1,6 @@
 import sys
 import re
+import html
 from pathlib import Path
 from flask_cors import CORS
 from flask import Flask, render_template, request, jsonify
@@ -18,7 +19,7 @@ mongoDB = MongoDB()
 
 web_url = 'https://en.wikipedia.org/'
 
-title_path  = "titles.trie"
+title_path = "titles.trie"
 log_path = 'log.trie'
 tl = Trie_Log(log_path)
 th = Trie_Hit(title_path)
@@ -31,6 +32,7 @@ def index():
     """
     # 返回前端初始界面index.html
     return render_template('index.html')
+
 
 @app.route('/wiki/<doc_id>/<title>', methods=['GET', 'POST'])
 def wiki_introduce(doc_id, title):
@@ -96,10 +98,7 @@ def search_results(query_str):
 
     # POST操作，将搜索结果内容显示在该界面上
     if request.method == 'POST':
-        title = str(query_str)
-        # print(title, query_str, type(title), type(query_str))
-        tl.hit(query_str)
-        print("hit:", query_str)
+        query_str = query_str.replace('%23', '#')
         page_id = int(request.get_json()['id'])
         # 数据库操作
         infos_list = query_parse.run_search(query=query_str, db=mongoDB)
