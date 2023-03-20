@@ -11,7 +11,7 @@ from functools import wraps
 from scipy.sparse import lil_matrix, csr_matrix
 
 # from ranking.ir_rankings_2 import calculate_sorted_bm25_score_of_query
-VERBOSE = False
+VERBOSE = True
 # nltk.download('stopwords')
 # nltk.download('punkt')
 stop_words = set(stopwords.words('english'))
@@ -342,7 +342,7 @@ if __name__ == '__main__':
     # query = '["indigenous peoples" AND Christopher AND islands AND "Japanese forces"]'  # 1000232
     # query = '["indigenous peoples" AND Christopher]'
     # query = 'python step by step instruction'
-    query = 'sunday'
+    query = '"computer science"'
     mongodb = MongoDB()
 
     print(run_search(query, mongodb))
