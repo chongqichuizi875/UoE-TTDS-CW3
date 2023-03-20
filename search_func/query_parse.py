@@ -1,14 +1,14 @@
-import math
 import re
 import time
 from cachetools import cached, LRUCache
+import math
 import numpy as np
 from nltk.corpus import stopwords
 from db.MongoDB import MongoDB
 import sys
 from data_collection.preprocessing import Preprocessing
 from functools import wraps
-from scipy.sparse import lil_matrix, csr_matrix
+from scipy.sparse import lil_matrix
 
 # from ranking.ir_rankings_2 import calculate_sorted_bm25_score_of_query
 VERBOSE = False
@@ -33,6 +33,14 @@ def timeit(func):
     return timeit_wrapper
 
 
+def preprocessing(text):
+    """This functioon will preprocess the text passed in,
+    remove the stopping words of English, stemming words,
+    and return a list of tokens after processing.
+    """
+    return Preprocessing().wiki_tokenize(text)
+
+
 class DBSearch(object):
     """
     1: preprocess the query
@@ -48,13 +56,8 @@ class DBSearch(object):
         self.freq_dicts = {}
         self.inverted_index_db = inverted_index_db
         self.verbose = verbose
-
-    def preprocessing(self, text, stemming=True, stopping=True):
-        """This functioon will preprocess the text passed in,
-        remove the stopping words of English, stemming words,
-        and return a list of tokens after processing.
-        """
-        return Preprocessing().wiki_tokenize(text)
+        self.total_page_count = self.inverted_index_db.total_page_count
+        self.avg_page_len = self.inverted_index_db.avg_page_len
 
     @cached(cache=LRUCache(maxsize=32))
     def single_search(self, token: str) -> list:
@@ -70,7 +73,7 @@ class DBSearch(object):
         """
 
         try:
-            token = self.preprocessing(token)[0]
+            token = preprocessing(token)[0]
             if self.verbose:
                 sys.stdout.write(f"token after pre \'{token}\'\n")
         except:
@@ -153,7 +156,7 @@ class DBSearch(object):
         return result_list
 
     @cached(cache=LRUCache(maxsize=32))
-    def calculate_freq(self, token, minimal_freq=5, max_chunk_size=1000):
+    def calculate_freq(self, token, minimal_freq=5, max_chunk_size=500):
 
         try:
             freq_dict = {}
@@ -166,23 +169,24 @@ class DBSearch(object):
                     if freq > minimal_freq:
                         freq_dict[id_pos_dict['_id']] = freq
 
-            # if len(freq_dict) > max_chunk_size:
-            #     freq_dict = dict(sorted(freq_dict.items(), key=lambda x: x[1], reverse=True)[:max_chunk_size])
+            if len(freq_dict) > max_chunk_size:
+                freq_dict = dict(sorted(freq_dict.items(), key=lambda x: x[1], reverse=True)[:max_chunk_size])
             return [freq_dict, page_count]
         except:
             return []
 
-    def token_to_index(self, tokens:list):
+    def token_to_index(self, tokens: list):
         for index, token in enumerate(list(set(tokens))):
             self.token2index[token] = index
             self.index2token[index] = token
 
-    def page_to_index(self, all_page_id_keys:list):
+    def page_to_index(self, all_page_id_keys: list):
         for index, page in enumerate(all_page_id_keys):
             self.page2index[page] = index
             self.index2page[index] = page
 
     @cached(cache=LRUCache(maxsize=32))
+    @timeit
     def bm25_sorted(self, query: str):
         """
 
@@ -193,24 +197,23 @@ class DBSearch(object):
                   page_id3: weight3
                   page_id4: weight4}
         """
-        tokens = self.preprocessing(query)
+        tokens = preprocessing(query)
         # tokens = query.split()
         score_dict = {}
 
         # solution 2, use sparse matrix
+
         self.token_to_index(tokens)
         freq_count_list = np.array([self.calculate_freq(token) for token in self.token2index.keys()])
         freq_dict_list = freq_count_list[:, 0]
         page_count_list = freq_count_list[:, 1]
-        idf_list = np.log10((self.inverted_index_db.get_page_count() + 0.5) / (page_count_list + 0.5).astype(float))
+        idf_list = np.log10((self.total_page_count + 0.5) / (page_count_list + 0.5).astype(float))
         all_page_id_keys = list(set().union(*(d.keys() for d in freq_dict_list)))
-
         self.page_to_index(all_page_id_keys)
-
         sparse_matrix = lil_matrix((len(all_page_id_keys), (len(self.token2index))))
         for i, page_id in self.index2page.items():
             page_len = self.inverted_index_db.get_page_by_page_id(page_id)['page_len']
-            k = k1 * (1 - b + (b * (page_len / self.inverted_index_db.get_avg_page_len())))
+            k = k1 * (1 - b + (b * (page_len / self.avg_page_len)))
             for token in tokens:
                 try:
                     j = self.token2index[token]
@@ -227,12 +230,12 @@ class DBSearch(object):
         # for token in tokens:
         #     freq_dict, page_count = self.calculate_freq(token)
         #     if len(freq_dict) > 0:
-        #         idf = math.log10((self.inverted_index_db.get_page_count() - page_count + 0.5) / (page_count + 0.5))
+        #         idf = math.log10((self.total_page_count - page_count + 0.5) / (page_count + 0.5))
         #         for page_id in freq_dict.keys():
         #             page_dict = self.inverted_index_db.get_page_by_page_id(page_id)
         #             tf = freq_dict[page_id]  # term freq
         #             page_len = page_dict['page_len']
-        #             k = k1 * (1 - b + (b * (page_len / self.inverted_index_db.get_avg_page_len())))
+        #             k = k1 * (1 - b + (b * (page_len / self.avg_page_len)))
         #             relevance = (tf * (k1 + 1)) / (tf + k)
         #             if page_id not in score_dict.keys():
         #                 score_dict[page_id] = 0
@@ -249,15 +252,16 @@ class QuerySelection(object):
     determine which search method to use according to the syntact of query
     """
 
-    def __init__(self, query: str, dbsearch: DBSearch, recur=False, verbose=VERBOSE):
+    def __init__(self, query: str, dbsearch: DBSearch, recur=False, verbose=VERBOSE, max_index=30):
         self.queryList = query.split()
         self.result = []
         self.dbsearch = dbsearch
         self.fuzzy = False  # default exact query
         self.recur = recur  # if created recursively -> must be exact search
         self.verbose = verbose
+        self.max_index = max_index
 
-        if (len(query) == 0):
+        if len(query) == 0:
             return
 
         if not self.recur:
@@ -301,7 +305,7 @@ class QuerySelection(object):
 
         # proximity search
         if '#' in query:
-            r = re.split(r'[^\w]', query)
+            r = re.split(r'\W', query)
             r = list(filter(None, r))
             if self.verbose:
                 sys.stdout.write('proximity search\n')
@@ -313,7 +317,7 @@ class QuerySelection(object):
         elif '\"' in query:
             if self.verbose:
                 sys.stdout.write("phrase search\n")
-            r = re.split(r'[^\w]', query)
+            r = re.split(r'\W', query)
             # turn list -> str
             s = str()
             for i in r:
@@ -331,16 +335,19 @@ class QuerySelection(object):
                 self.result = self.dbsearch.boolean_search(query)
 
     def __call__(self, *args, **kwargs):
-        return self.result
+        return self.result[:self.max_index]
+
 
 @timeit
-def run_search(query, db):
+def run_search(query, db, max_index=30):
     dbsearch = DBSearch(inverted_index_db=db)
-    search_result = QuerySelection(query, dbsearch)()
+    search_result = QuerySelection(query, dbsearch, max_index=max_index)()
     page_ids = []
     if len(search_result[0]) == 2:
         for page in search_result:
             page_ids.append(page[0])
+    else:
+        page_ids = search_result
     infos_list = []
     pages_returned = db.get_pages_by_list_of_ids(ids=page_ids)
     for page in pages_returned:
@@ -354,6 +361,5 @@ if __name__ == '__main__':
     query = 'python step by step instruction'
     # query = '["computer science"]'
     mongodb = MongoDB()
-    _ = run_search(query, mongodb)
+    _ = run_search(query, mongodb, max_index=30)
     # print(run_search(query, mongodb))
-

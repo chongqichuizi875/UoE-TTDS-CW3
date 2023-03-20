@@ -20,8 +20,8 @@ class MongoDB(DBInterface):
         self.pages = self.wiki.pages
         self.inverted_index = self.wiki.inverted_index
         self.inverted_index.create_index("token")
-        # self.avg_page_len = self.get_avg_page_len()
-        # self.page_count = self.get_page_count()
+        self.avg_page_len = self.get_avg_page_len()
+        self.total_page_count = self.get_page_count()
         # print('avg_page_len:::' + str(self.avg_page_len))
         # print('page_count:::'+str(self.page_count))
         # print('initialize MongoDB done.')
