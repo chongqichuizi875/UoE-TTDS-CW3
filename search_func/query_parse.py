@@ -11,7 +11,7 @@ from functools import wraps
 from scipy.sparse import lil_matrix, csr_matrix
 
 # from ranking.ir_rankings_2 import calculate_sorted_bm25_score_of_query
-VERBOSE = False
+VERBOSE = True
 # nltk.download('stopwords')
 # nltk.download('punkt')
 stop_words = set(stopwords.words('english'))
@@ -341,18 +341,19 @@ def run_search(query, db):
     page_ids = []
     for result in query_selection:
         page_ids.append(result[0])
+    print(page_ids)
     pages_returned = db.get_pages_by_list_of_ids(ids=page_ids)
     for page in pages_returned:
         infos_list.append({'doc_id': page['_id'], 'title': page['title'], 'introduce': page['text'][0: 600] + '...'})
     return infos_list
 
 
-# if __name__ == '__main__':
-#     # query = '["indigenous peoples" AND Christopher AND islands AND "Japanese forces"]'  # 1000232
-#     # query = '["indigenous peoples" AND Christopher]'
-#     # query = 'python step by step instruction'
-#     query = 'sunday'
-#     mongodb = MongoDB()
-#
-#     print(run_search(query, mongodb))
+if __name__ == '__main__':
+    # query = '["indigenous peoples" AND Christopher AND islands AND "Japanese forces"]'  # 1000232
+    query = '["indigenous peoples" AND Christopher]'
+    # query = 'python step by step instruction'
+    # query = 'sunday'
+    mongodb = MongoDB()
+    _ = run_search(query, mongodb)
+    # print(run_search(query, mongodb))
 
