@@ -90,4 +90,5 @@ class MongoDB(DBInterface):
 
         ]))
     def create_token_freqs_dict(self):
+        # return {doc['_id']: [{x['pageid']:x['tf'] for x in doc['tfs'] }, doc['page_count']] for doc in self.tfs.find()}
         return {doc['_id']: [{x['pageid']:x['tf'] for x in doc['tfs'] }, doc['page_count']] for doc in self.tfs.find()}
