@@ -1,5 +1,6 @@
 import sys
 import re
+import html
 from pathlib import Path
 from flask_cors import CORS
 from flask import Flask, render_template, request, jsonify
@@ -9,7 +10,7 @@ from ranking import ir_rankings
 from db.MongoDB import MongoDB
 from trie_search.process_query import Query_Completion
 from trie_search.trie_tree import Trie_Log, Trie_Hit
-
+import urllib.parse
 app = Flask(__name__)
 app.jinja_env.variable_start_string = '[[['
 app.jinja_env.variable_end_string = ']]]'
@@ -18,7 +19,7 @@ mongoDB = MongoDB()
 
 web_url = 'https://en.wikipedia.org/'
 
-title_path  = "titles.trie"
+title_path = "titles.trie"
 log_path = 'log.trie'
 tl = Trie_Log(log_path)
 th = Trie_Hit(title_path)
@@ -31,6 +32,7 @@ def index():
     """
     # 返回前端初始界面index.html
     return render_template('index.html')
+
 
 @app.route('/wiki/<doc_id>/<title>', methods=['GET', 'POST'])
 def wiki_introduce(doc_id, title):
@@ -90,16 +92,14 @@ def search_results(query_str):
         字典里每一项按顺序分别为词条title和词条introduce
     (2) len_number: 搜索结果的数量
     """
+    query_str = urllib.parse.unquote(query_str)
     # GET操作，则显示搜索结果界面
     if request.method == 'GET':
         return render_template('show_index.html')
 
     # POST操作，将搜索结果内容显示在该界面上
     if request.method == 'POST':
-        title = str(query_str)
-        # print(title, query_str, type(title), type(query_str))
-        tl.hit(query_str)
-        print("hit:", query_str)
+        query_str = query_str.replace('%23', '#')
         page_id = int(request.get_json()['id'])
         # 数据库操作
         infos_list = query_parse.run_search(query=query_str, db=mongoDB)
