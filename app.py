@@ -107,7 +107,7 @@ def search_results(query_str):
         len_number = int(len(infos_list))
         # 第1页就是放搜索结果[0:10], 第2页[11:20]，以此类推
         infos_list = infos_list[(page_id * 10 - 10): (page_id * 10)]
-        return jsonify({'infos_list': infos_list, 'len_number': len_number})
+        return jsonify({'input_value': query_str, 'infos_list': infos_list, 'len_number': len_number})
 
 @app.route('/input_value', methods=['POST'])
 def input_value():
