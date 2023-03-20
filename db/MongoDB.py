@@ -16,7 +16,7 @@ class MongoDB(DBInterface):
         # print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
         client = MongoClient("mongodb://127.0.0.1:27017/")
         # client = MongoClient("mongodb://192.168.224.1:27017/")
-        self.wiki = client.subwiki
+        self.wiki = client.wiki
         self.pages = self.wiki.pages
         self.inverted_index = self.wiki.inverted_index
         self.tfs = self.wiki.tfs
@@ -90,4 +90,5 @@ class MongoDB(DBInterface):
 
         ]))
     def create_token_freqs_dict(self):
+        # return {doc['_id']: [{x['pageid']:x['tf'] for x in doc['tfs'] }, doc['page_count']] for doc in self.tfs.find()}
         return {doc['_id']: [{x['pageid']:x['tf'] for x in doc['tfs'] }, doc['page_count']] for doc in self.tfs.find()}
