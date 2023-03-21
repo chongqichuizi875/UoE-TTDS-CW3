@@ -16,7 +16,7 @@ class MongoDB(DBInterface):
         # print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'))
         client = MongoClient("mongodb://127.0.0.1:27017/")
         # client = MongoClient("mongodb://192.168.224.1:27017/")
-        self.wiki = client.wiki
+        self.wiki = client.subwiki
         self.pages = self.wiki.pages
         self.inverted_index = self.wiki.inverted_index
         self.tfs = self.wiki.tfs
@@ -65,7 +65,7 @@ class MongoDB(DBInterface):
 
     def get_avg_page_len(self):
         return next(self.pages.aggregate([
-            { '$project': { 'avg':{'$avg': '$page_len'}} }
+            {'$project': {'avg': {'$avg': '$page_len'}}}
         ]))['avg']
 
     def get_page_titles(self):

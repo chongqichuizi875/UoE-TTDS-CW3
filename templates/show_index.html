@@ -73,7 +73,7 @@
     </div>
 
 
-    <template style="padding: 50px 50px 50px 100px" v-if="is_empty">
+    <template style="padding: 50px 50px 50px 100px" v-if="not_empty">
 
         <div v-for="i in infos_list">
 
@@ -154,7 +154,7 @@
                     this.infos_list = res.data['infos_list']
                     this.len_number = res.data['len_number']
                     this.input_value = res.data['input_value']
-                    this.is_empty = res.data['is_empty']
+                    this.not_empty = res.data['not_empty']
                 })
                 .catch(err => {
                     console.log(err)
