@@ -142,7 +142,6 @@
             console.log(this.local_url)
 
 
-
             var url = window.location.pathname
             var wiki = url.slice(8)
             var id = '1'
@@ -214,14 +213,14 @@
             input_value() {
                 if (this.is_watch){
                     if (this.input_value !== '') {
-                    axios.post('/input_value', {'input_value': this.input_value})
-                        .then(res => {
-                            this.infos = res.data
-                        })
-                        .catch(err => {
-                            console.log(err)
-                            alert('Network transmission failed')
-                        })
+                        axios.post('/input_value', {'input_value': this.input_value})
+                            .then(res => {
+                                this.infos = res.data
+                            })
+                            .catch(err => {
+                                console.log(err)
+                                alert('Network transmission failed')
+                            })
                     } else {
                         this.infos = ''
                     }
