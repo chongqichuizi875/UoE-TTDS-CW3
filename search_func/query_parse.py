@@ -49,7 +49,6 @@ class DBSearch(object):
     """
 
     def __init__(self, inverted_index_db: MongoDB, verbose=VERBOSE) -> None:
-        self.cached_token_freq = {}
         self.index2page = {}
         self.page2index = {}
         self.index2token = {}
@@ -59,6 +58,7 @@ class DBSearch(object):
         self.verbose = verbose
         self.total_page_count = self.inverted_index_db.total_page_count
         self.avg_page_len = self.inverted_index_db.avg_page_len
+        self.cached_token_freq = self.inverted_index_db.token_freqs
 
     @cached(cache=LRUCache(maxsize=32))
     def single_search(self, token: str) -> list:
@@ -375,8 +375,8 @@ if __name__ == '__main__':
     # query = '["indigenous peoples" AND Christopher]'
     # query = 'python step by step instruction'
     # query = '"computer science"'
-    # query = 'I like China, give me a guide to travel to China'
-    query = '[#3(Christopher, shit)]'
+    query = 'I like China, give me a guide to travel to China'
+    # query = '[#3(Christopher, shit)]'
     mongodb = MongoDB()
     # _ = run_search(query, mongodb, max_index=30)
     print(run_search(query, mongodb, max_index=30))
