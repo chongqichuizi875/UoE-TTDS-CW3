@@ -92,7 +92,6 @@ class QueryExpansion():
         hypernyms = self.get_tokens_from_hypernyms(hypernyms)
         hypernyms = self.underscore_replacer(hypernyms)
         new_tokens = {**synonyms, **hypernyms}
-        print(new_tokens)
         new_tokens = self.preprocessor.stemming_tokens(list(new_tokens.keys()))
         return list(new_tokens)
 
