@@ -4,6 +4,7 @@ from cachetools import cached, LRUCache
 import math
 import numpy as np
 from nltk.corpus import stopwords
+from qe.QueryExpansion import QueryExpansion
 from db.MongoDB import MongoDB
 import sys
 from data_collection.preprocessing import Preprocessing
@@ -49,6 +50,7 @@ class DBSearch(object):
     """
 
     def __init__(self, inverted_index_db: MongoDB, verbose=VERBOSE) -> None:
+        self.qe = QueryExpansion()
         self.index2page = {}
         self.page2index = {}
         self.index2token = {}
@@ -199,7 +201,9 @@ class DBSearch(object):
                   page_id3: weight3
                   page_id4: weight4}
         """
+        expansion = self.qe.generate_tokens(query)
         tokens = preprocessing(query)
+        tokens = tokens + expansion
         print(f"preprocessed tokens {tokens}")
         # tokens = query.split()
         if len(tokens) == 0:
